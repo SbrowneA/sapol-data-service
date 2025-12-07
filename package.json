@@ -1,0 +1,35 @@
+{
+  "name": "sapol-data-service",
+  "version": "0.1.0",
+  "description": "SA POLICE Open data analysis app",
+  "keywords": [
+    "node",
+    "express"
+  ],
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "server.ts",
+  "scripts": {
+    "test": "test",
+    "run-local": "node --watch src/server.ts"
+  },
+  "engines": {
+    "node": ">=22 <=v24.11.1"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "custom-env": "^2.0.6",
+    "express": "^5.2.1",
+    "helmet": "^8.1.0",
+    "morgan": "^1.10.1",
+    "zod": "^4.1.13"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/morgan": "^1.9.10",
+    "@types/node": "^24.10.1",
+    "typescript": "^5.9.3"
+  }
+}
