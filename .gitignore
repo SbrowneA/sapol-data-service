@@ -12,5 +12,4 @@ yarn-error.log*
 .idea/*
 
 # Envirmonment configs
-.env.local
 .env.*
