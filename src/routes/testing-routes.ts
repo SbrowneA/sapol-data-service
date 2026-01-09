@@ -1,21 +1,17 @@
 import { Router } from "express";
+import {SapolScraper} from "../scraper.ts";
 
 const testingRoutes = Router();
 
+const scraper = new SapolScraper();
 testingRoutes.get("/", (req, res) => {
-  res.json({message: `GET DATA` });
+    res.json({message: `main route` });
 });
 
-
-// TODO
-// init puppeteer
 testingRoutes.get("/data", (req, res) => {
-  // get data
-  // find items
-  // parse data
-  // return
-  // NEXT: cache data
-  //res.json({message: `GET DATA` });
+  scraper.getData().then(data => {
+    res.json({message: `GET DATA`, data });
+  });
 });
 
 export default testingRoutes;
