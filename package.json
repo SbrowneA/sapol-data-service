@@ -6,6 +6,10 @@
     "node",
     "express"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SbrowneA/sapol-data-service.git"
+  },
   "license": "ISC",
   "author": "",
   "type": "module",
