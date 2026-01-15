@@ -1,12 +1,25 @@
-import * as cheerio from "cheerio";
 import {readFile, writeFile} from "fs/promises";
-import { get as httpGet } from 'node:http'
-import {DateTime} from 'luxon';
+import {get as httpGet} from 'node:http'
 import path from 'node:path'
-import { fileURLToPath } from "node:url";
+import {fileURLToPath} from "node:url";
+import * as crypto from "node:crypto";
+
+import {DateTime} from 'luxon';
+import * as cheerio from "cheerio";
+import {Element} from 'domhandler';
 
 import {env, isLocal} from "../env.ts";
-import {type MobileSpeedCameraLocation} from "./schemas/MobileSpeedCameraLocationSchema.ts";
+import {
+  type MobileSpeedCameraLocation,
+  MobileSpeedCameraLocationSchema
+} from "./schemas/domain/MobileSpeedCameraLocationSchema.ts";
+import {type Cheerio} from "cheerio";
+import {type ZodSafeParseResult} from "zod";
+import { type ScrapeRun } from "./schemas/domain/ScrapeRunSchema.ts";
+import {type RegionType} from "./schemas/domain/regionTypeEnum.ts";
+import {type MobileSpeedCameraLocationDb} from "./schemas/db/MobileSpeedCameraLocationsSchemaDb.ts";
+
+const uuid = () => crypto.randomUUID();
 
 export class SapolScraper {
   /**
@@ -16,7 +29,7 @@ export class SapolScraper {
     if (isLocal) {
       return this.loadPageHtmlMock();
     } else {
-      // fixme
+      // todo
       throw new Error("SET UP LIVE SCRAPING!")
       httpGet(env.SAPOL_LOCATIONS_URL, (value) => {
         console.log('Response from', env.SAPOL_LOCATIONS_URL, value)
@@ -48,52 +61,26 @@ export class SapolScraper {
    * @param html : string
    * @private
    */
-  private parseHtmlPage(html: string): MobileSpeedCameraLocation[] {
-    console.log('Parsing HTML:', html.length, 'chars');
-    const metroLocations: MobileSpeedCameraLocation[] = [];
-    const countryLocations: MobileSpeedCameraLocation[] = [];
+  private parseHtmlPage(html: string, scrapeRun: ScrapeRun ): MobileSpeedCameraLocation[] {
+    console.info('Parsing HTML:', html.length, 'chars');
 
     const $ = cheerio.load(html);
     // Parse metro locations
     const metroContainers = $('div.container').not('.country');
     // getting the first metro list (ul) because each metro-list contains all the metro locations
     const metroElements = metroContainers.children('ul').first().children('li');
-    console.log('metro', metroElements.length);
-    metroElements.each((i, el) => {
-      const date: string = (el.attribs as any)?.['data-value'] || '';
-      const text: string = (el.children?.[0] as any)?.data || null;
-      const location: MobileSpeedCameraLocation = {
-        startDate: new Date(date),
-        endDate: new Date(date),
-        location: text,
-        regionType: "METRO",
-        createdAt: DateTime.now().toISO(),
-        editedAt: DateTime.now().toISO(),
-        meta: {cssClass: (el.attribs as any)?.['class'] || undefined}
-      };
-      metroLocations.push(location);
-    });
+    const metroLocations: MobileSpeedCameraLocation[] = this.paresElementsToLocations("METRO", metroElements, scrapeRun.scrapeRunId);
 
     // Parse country locations
     const countryContainer = $('div.container.country');
     const countryElements = countryContainer.children('ul.countrylist').children('li')
-    console.log('country', countryElements.length);
+    const countryLocations: MobileSpeedCameraLocation[] = this.paresElementsToLocations("COUNTRY", countryElements, scrapeRun.scrapeRunId);
 
-    countryElements.each((i, el) => {
-      const dateStart: string = (el.attribs as any)?.['datestart'] || '';
-      const dateEnd: string = (el.attribs as any)?.['dateend'] || '';
-      const text: string = (el.children?.[0] as any)?.data || null;
-      const location: MobileSpeedCameraLocation = {
-        startDate: new Date(dateStart),
-        endDate: new Date(dateEnd),
-        location: text,
-        regionType: "COUNTRY",
-        createdAt: DateTime.now().toISO(),
-        editedAt: DateTime.now().toISO(),
-        meta: {cssClass: (el.attribs as any)?.['class'] || undefined}
-      };
-      metroLocations.push(location);
-    });
+    console.info('metro elements:', metroElements.length);
+    console.info('metro locations:', metroLocations.length);
+    console.info('country elements:', countryElements.length);
+    console.info('country locations:', countryLocations.length);
+    console.log('unique locations: ', metroLocations.length + countryLocations.length);
 
     return [...metroLocations, ...countryLocations];
   }
@@ -104,31 +91,132 @@ export class SapolScraper {
    * 2. Parse HTML to MobileSpeedCameraLocation
    * 3. Save/write MobileSpeedCameraLocation
    */
-  async getData(dateRange?: { startDate: string, endDate: string }): Promise<MobileSpeedCameraLocation[]> {
+  async getData(dateRange?: { startDate: string, endDate: string }): Promise<{ locations: MobileSpeedCameraLocation[], scrapeRun: ScrapeRun }> {
     // TODO check if data has already been saved for date range (if no date check for week (from now/Today)
     // if YES - use saved results (if they are less than 2 days old)
-    // todo
-    // ELSE - load html from SAPOL site
-    // load HTML from SAPOL site
-    const html = await this.loadPageHtml();
 
-    // Parse html into data
-    // todo should load data from saved locations in supabase
-    const data: MobileSpeedCameraLocation[] = this.parseHtmlPage(html || '');
+    // if NO -
+      // ELSE - load html from SAPOL site
+    const scrapeRun: ScrapeRun = {
+      scrapeRunId: uuid(),
+      runStart: DateTime.utc().toISO(),
+      runResult: 'PENDING'
+    }
 
-    await this.writeData(data)
-    return data;
+    let data: MobileSpeedCameraLocation[] = [];
+    try {
+      // 1. load HTML from SAPOL site
+      const html = await this.loadPageHtml();
+      // 2. Parse html into data
+      data = this.parseHtmlPage(html || '', scrapeRun);
+      // 2.1 save debug information
+      await this.writeDataForDebug(data, 'mobile-cameras.json');
+      // 3. finalise run
+      scrapeRun.runEnd = DateTime.utc().toISO();
+      scrapeRun.runResult = 'SUCCESS';
+    } catch (error) {
+      scrapeRun.runResult = 'FAIL';
+    }
+    return { locations: data, scrapeRun };
   }
 
-  async writeData(data: Object) {
-    // TODO save to supabase
-    // todo sync loaded results with saved results
+
+  /**
+   *
+   * @param data
+   * @param fileName
+   * @private
+   */
+  private async writeDataForDebug(data: Object, fileName: string) {
     try {
-      await writeFile("mobile-cameras.json", JSON.stringify(data, null, 2), {encoding: "utf8"});
+      const filePath = path.join('src/debug', fileName);
+      await writeFile(filePath, JSON.stringify(data, null, 2), {encoding: "utf8"});
       console.log("Wrote mobile-cameras.json");
     } catch (err) {
       console.error(err);
     }
+  }
+
+  /**
+   * Upserts camera location records
+   * @param data
+   */
+  async saveLocations(data: MobileSpeedCameraLocationDb) {
+    try {
+      // todo sync loaded results with saved results
+      //  save to supabase
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  /**
+   * Parses the scraped HTML elements to MobileSpeedCameraLocation[] based on the regionType provided
+   * @param regionType
+   * @param elements
+   * @param scrapeRunId
+   * @private
+   */
+  private paresElementsToLocations(regionType: RegionType, elements: Cheerio<Element>, scrapeRunId: string): MobileSpeedCameraLocation[] {
+    // locations map to de-duplicate values (Duplicates can still exist in same SAPOL list)
+    const locationsMap: Map<string, MobileSpeedCameraLocation> = new Map();
+
+    elements.each((i, el) => {
+      let startDate: string;
+      let endDate: string;
+      // only add locations that showlist to avoid duplicates
+      const cssClass = (el.attribs as any)?.['class'];
+      if (cssClass.includes('showlist')) {
+        if (regionType === "METRO") {
+          const date: string = (el.attribs as any)?.['data-value'] || '';
+          const formattedDate = DateTime.fromFormat(date, "dd/MM/yyyy").toFormat('yyyy-MM-dd');
+          startDate = formattedDate;
+          endDate = formattedDate;
+        } else {
+          const dateStart: string = (el.attribs as any)?.['datestart'] || '';
+          startDate = DateTime.fromFormat(dateStart, "dd/MM/yyyy").toFormat('yyyy-MM-dd');
+          const dateEnd: string = (el.attribs as any)?.['dateend'] || '';
+          endDate = DateTime.fromFormat(dateEnd, "dd/MM/yyyy").toFormat('yyyy-MM-dd');
+        }
+        let text: string = (el.children?.[0] as any)?.data || null;
+        text = text.replace(/\s*\r?\n\s*/g, ' ').trim();
+
+        // Zod.parse() to validate scraped value
+        const result: ZodSafeParseResult<MobileSpeedCameraLocation> = MobileSpeedCameraLocationSchema.safeParse({
+          startDate: startDate,
+          endDate: endDate,
+          location: text,
+          regionType: regionType,
+          createdAt: DateTime.utc().toISO(),
+          // fixme comments
+          // editedAt: DateTime.utc().toISO(),
+          // assume true until deleted
+          // isActive: true,
+          scrapeRunId: scrapeRunId,
+          meta: {
+            cssClass: cssClass || undefined,
+            allScrapeRuns: []
+          }
+        });
+
+        if (result.success) {
+          const location = result.data
+          const key =  location.location + location.startDate + location.endDate;
+          if (!locationsMap.has(key)){
+            locationsMap.set(key, location);
+          }
+          else {
+            console.info('duplicate location scraped from SAPOL: ',
+              `(${regionType}) ${location.location}, from ${startDate} to ${endDate}`);
+          }
+        } else {
+          console.error('Could not parse location', `text, ${startDate} -  ${endDate}`);
+          console.error(result.error);
+        }
+      }
+    });
+
+    return Array.from(locationsMap.values());
   }
 }
 
@@ -137,7 +225,5 @@ export class SapolScraper {
  * Database for historical reference of streets.
  * - Reduces frequency of calls to SAPOL site.
  */
-export class SapolDataService {
-
-}
+export class SapolDataService { }
 
