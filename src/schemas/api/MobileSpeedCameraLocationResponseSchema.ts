@@ -10,6 +10,7 @@ export const MobileCameraLocationResponseSchema = z.object({
   location: z.string(),
   // ISO string
   lastUpdatedAt: z.iso.datetime(),
+  // TODO geolocation details
 })
 
 export const CameraLocationsByDayResponseSchema = z.object({

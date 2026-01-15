@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { RegionTypeEnum } from "../domain/regionTypeEnum.ts";
 
 /**
  * DB Schemas
@@ -6,11 +7,19 @@ import { z } from 'zod';
  * @see MobileSpeedCameraLocationSchema for BE
  */
 export const MobileSpeedCameraLocationsSchemaDb = z.object({
-  start_date: z.coerce.date(),
-  end_date: z.coerce.date(),
+  id: z.bigint().optional(),
+  start_date: z.iso.date(),
+  end_date: z.iso.date(),
   location: z.string().min(5),
-  region_type: z.enum(['METRO', 'COUNTRY']),
-  css_class: z.string().optional()
+  region_type: RegionTypeEnum,
+  created_at: z.iso.datetime(),
+  edited_at: z.iso.datetime().optional(),
+  is_active: z.boolean(),
+  scrape_run_id: z.uuid(),
+  meta: z.object({
+    css_class: z.string().optional(),
+    all_scrape_run_ids: z.string().array()
+  })
 }).refine(record => record.start_date <= record.end_date, {
   message: 'start_date must be <= end_date',
 });
