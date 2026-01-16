@@ -31,9 +31,16 @@ const commaStringToArray = (commaString: string) =>
   commaString.split(',').map(subStr => subStr.trim()).filter(subStr => !!subStr)
 
 const mockPathSchema = z.object({
+  SCRAPED: z.string().startsWith('/').endsWith('.html'),
   SUCCESS: z.string().startsWith('/').endsWith('.html'),
   ERROR: z.string().startsWith('/').endsWith('.html'),
   SIMPLE: z.string().startsWith('/').endsWith('.html'),
+})
+
+const requestOptionsSchema = z.object({
+  path: z.string().startsWith('/'),
+  host: z.string(),
+  protocol: z.enum(['https:', 'http:']),
 })
 
 // define the env schema
@@ -46,6 +53,10 @@ const envSchema = z.object({
   PORT: z.coerce.number().positive().default(3000),
   CORS_ORIGINS: z.string().transform(commaStringToArray).pipe(z.string().array()),
   SAPOL_LOCATIONS_URL: z.string().startsWith('https://'),
+  // SAPOL
+  // JSON object string
+  SAPOL_LOCATIONS_REQUEST_OPTS: z.string().transform((str) => JSON.parse(str)).pipe(requestOptionsSchema),
+  SAPOL_MOCK_RESPONSE_FILE_PATHS: z.string().transform((str) => JSON.parse(str)).pipe(mockPathSchema),
   // todo
   // SAPOL_GET_EXPIATION_DATA_ENDPOINT: z.string().startsWith('https://'),
   // JSON object string

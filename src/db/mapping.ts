@@ -7,7 +7,7 @@ import {
   MobileSpeedCameraLocationSchema
 } from "../schemas/domain/MobileSpeedCameraLocationSchema.ts";
 import {
-  type MobileSpeedCameraLocationDb,
+  type MobileSpeedCameraLocationDb, type MobileSpeedCameraLocationInsertDb, MobileSpeedCameraLocationsInsertSchemaDb,
   MobileSpeedCameraLocationsSchemaDb
 } from "../schemas/db/MobileSpeedCameraLocationsSchemaDb.ts";
 import {type ScrapeRun, ScrapeRunSchema} from "../schemas/domain/ScrapeRunSchema.ts";
@@ -31,6 +31,21 @@ export class DataMapping {
       region_type: value.regionType,
       created_at: value.createdAt,
       edited_at: value.editedAt,
+      is_active: value.isActive,
+      scrape_run_id: value.scrapeRunId,
+      meta: {
+        css_class: value.meta?.cssClass,
+        all_scrape_run_ids: value.meta.allScrapeRuns?.length ? value.meta.allScrapeRuns : [value.scrapeRunId]
+      }
+    });
+  }
+
+  public static cameraLocationBeToDbInsert(value: MobileSpeedCameraLocation): MobileSpeedCameraLocationInsertDb {
+    return MobileSpeedCameraLocationsInsertSchemaDb.parse({
+      start_date: value.startDate,
+      end_date: value.endDate,
+      location: value.location,
+      region_type: value.regionType,
       is_active: value.isActive,
       scrape_run_id: value.scrapeRunId,
       meta: {

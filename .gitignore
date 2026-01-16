@@ -14,5 +14,6 @@ yarn-error.log*
 # Envirmonment configs
 .env.*
 
-# Mock results to be saved
+# results saved for debugging
 mobile-cameras.json
+last-scrape.html
