@@ -1,12 +1,12 @@
 import { z } from 'zod';
-import { RegionTypeEnum } from "../domain/regionTypeEnum.ts";
+import { RegionTypeEnum } from "../domain/region-type.enum.ts";
 
 /**
  * DB Schemas
  * @see MobileSpeedCameraLocationResponseSchema for FE/API
  * @see MobileSpeedCameraLocationSchema for BE
  */
-export const MobileSpeedCameraLocationsSchemaDb = z.object({
+export const MobileSpeedCameraLocationsDbSchema = z.object({
   id: z.bigint(),
   start_date: z.iso.date(),
   end_date: z.iso.date(),
@@ -25,9 +25,9 @@ export const MobileSpeedCameraLocationsSchemaDb = z.object({
 });
 
 export const MobileSpeedCameraLocationsInsertSchemaDb =
-  MobileSpeedCameraLocationsSchemaDb.omit({ id: true, created_at: true, edited_at: true});
+  MobileSpeedCameraLocationsDbSchema.omit({ id: true, created_at: true, edited_at: true});
 
 
-export type MobileSpeedCameraLocationDb = z.infer<typeof MobileSpeedCameraLocationsSchemaDb>;
+export type MobileSpeedCameraLocationDb = z.infer<typeof MobileSpeedCameraLocationsDbSchema>;
 // Defines values that will be inserted into the databaes
 export type MobileSpeedCameraLocationInsertDb = z.infer<typeof MobileSpeedCameraLocationsInsertSchemaDb>;

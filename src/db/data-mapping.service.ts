@@ -1,17 +1,17 @@
 import {
   type MobileCameraLocationResponse,
   MobileCameraLocationResponseSchema
-} from "../schemas/api/MobileSpeedCameraLocationResponseSchema.ts";
+} from "../schemas/api/mobile-speed-camera-location-response.schema.ts";
 import {
   type MobileSpeedCameraLocation,
   MobileSpeedCameraLocationSchema
-} from "../schemas/domain/MobileSpeedCameraLocationSchema.ts";
+} from "../schemas/domain/mobile-speed-camera-location.schema.ts";
 import {
   type MobileSpeedCameraLocationDb, type MobileSpeedCameraLocationInsertDb, MobileSpeedCameraLocationsInsertSchemaDb,
-  MobileSpeedCameraLocationsSchemaDb
-} from "../schemas/db/MobileSpeedCameraLocationsSchemaDb.ts";
-import {type ScrapeRun, type ScrapeRunInsert, ScrapeRunSchema} from "../schemas/domain/ScrapeRunSchema.ts";
-import {type ScrapeRunDb, type ScrapeRunInsertDb, ScrapeRunSchemaDb} from "../schemas/db/ScrapeRunSchemaDb.ts";
+  MobileSpeedCameraLocationsDbSchema
+} from "../schemas/db/mobile-speed-camera-locations-db.schema.ts";
+import {type ScrapeRun, type ScrapeRunInsert, ScrapeRunSchema} from "../schemas/domain/scrape-run.schema.ts";
+import {type ScrapeRunDb, type ScrapeRunInsertDb, ScrapeRunDbSchema} from "../schemas/db/scrape-run-db.schema.ts";
 
 /**
  * Uses zod schemas to parse data between layers:
@@ -21,7 +21,7 @@ import {type ScrapeRunDb, type ScrapeRunInsertDb, ScrapeRunSchemaDb} from "../sc
  * */
 export class DataMappingService {
   public static cameraLocationBeToDb(value: MobileSpeedCameraLocation): MobileSpeedCameraLocationDb {
-    return MobileSpeedCameraLocationsSchemaDb.parse({
+    return MobileSpeedCameraLocationsDbSchema.parse({
       // domain level may be null
       id: value.id,
       start_date: value.startDate,
@@ -81,7 +81,7 @@ export class DataMappingService {
   }
 
   public static scrapeRunBeToDb(value: ScrapeRun): ScrapeRunDb {
-    return ScrapeRunSchemaDb.parse({
+    return ScrapeRunDbSchema.parse({
       scrape_run_id: value.scrapeRunId,
       run_start: value.runStart,
       run_end: value.runEnd,

@@ -1,10 +1,10 @@
 import {z} from 'zod';
-import {RegionTypeEnum} from "./regionTypeEnum.ts";
+import {RegionTypeEnum} from "./region-type.enum.ts";
 
 /**
  * Domain Schemas (BE)
  * @see MobileSpeedCameraLocationResponseSchema for FE/API
- * @see MobileSpeedCameraLocationsSchemaDb for DB
+ * @see MobileSpeedCameraLocationsDbSchema for DB
  */
 export const MobileSpeedCameraLocationSchema = z.object({
   // unique record id in DB

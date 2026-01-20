@@ -8,12 +8,12 @@ import {SupaDatabase} from "../db/sapol-db.service.ts";
 import {
   type MobileSpeedCameraLocationDb,
   type MobileSpeedCameraLocationInsertDb
-} from "../schemas/db/MobileSpeedCameraLocationsSchemaDb.ts";
+} from "../schemas/db/mobile-speed-camera-locations-db.schema.ts";
 import {CameraLocationTableService} from "../db/table-services/camera-location-table.service.ts";
 import {ScrapeRunTableService} from "../db/table-services/scrape-run-table.service.ts";
 import {MobileSpeedCameraLocationReconciliationService} from "../db/data-reconciliation.service.ts";
-import type {ScrapeRunDb} from "../schemas/db/ScrapeRunSchemaDb.ts";
-import type {ScrapeRun} from "../schemas/domain/ScrapeRunSchema.ts";
+import type {ScrapeRunDb} from "../schemas/db/scrape-run-db.schema.ts";
+import type {ScrapeRun} from "../schemas/domain/scrape-run.schema.ts";
 import {DateTime} from "luxon";
 
 const testingRoutes = Router();

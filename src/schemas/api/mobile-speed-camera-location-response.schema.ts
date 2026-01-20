@@ -4,7 +4,7 @@ import { z } from 'zod';
 /**
  * API Response Schemas (FE)
  * @see MobileSpeedCameraLocationSchema for BE
- * @see MobileSpeedCameraLocationsSchemaDb for DB
+ * @see MobileSpeedCameraLocationsDbSchema for DB
  */
 export const MobileCameraLocationResponseSchema = z.object({
   location: z.string(),

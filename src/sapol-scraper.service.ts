@@ -1,4 +1,4 @@
-import {readFile, writeFile} from "fs/promises";
+import {readFile} from "fs/promises";
 import {get as httpsGet, type RequestOptions} from 'node:https'
 import path from 'node:path'
 import {fileURLToPath} from "node:url";
@@ -11,13 +11,14 @@ import {env, isLocal} from "../env.ts";
 import {
   type MobileSpeedCameraLocation,
   MobileSpeedCameraLocationSchema
-} from "./schemas/domain/MobileSpeedCameraLocationSchema.ts";
+} from "./schemas/domain/mobile-speed-camera-location.schema.ts";
 import { type Cheerio} from "cheerio";
 import { type ZodSafeParseResult} from "zod";
-import {type ScrapeRun} from "./schemas/domain/ScrapeRunSchema.ts";
-import { type RegionType} from "./schemas/domain/regionTypeEnum.ts";
-import { type MobileSpeedCameraLocationDb} from "./schemas/db/MobileSpeedCameraLocationsSchemaDb.ts";
-import { type ScrapeRunInsertDb} from "./schemas/db/ScrapeRunSchemaDb.ts";
+import {type ScrapeRun} from "./schemas/domain/scrape-run.schema.ts";
+import { type RegionType} from "./schemas/domain/region-type.enum.ts";
+import { type MobileSpeedCameraLocationDb} from "./schemas/db/mobile-speed-camera-locations-db.schema.ts";
+import { type ScrapeRunInsertDb} from "./schemas/db/scrape-run-db.schema.ts";
+import {DebugService} from "./debug/debug.service.ts";
 
 export class SapolScraperService {
   generateHeader(host: string, userAgent?: string): {[key: string]: string} {
@@ -151,11 +152,11 @@ export class SapolScraperService {
     try {
       // 1. load HTML from SAPOL site
       const html = await this.loadPageHtml();
-      await SapolDataService.writeDataForDebug(html, 'last-scrape.html');
+      await DebugService.writeDataForDebug(html, 'last-scrape.html');
       // 2. Parse html into data
       data = this.parseHtmlPage(html || '', scrapeRun);
       // 2.1 save debug information
-      await SapolDataService.writeDataForDebug(data, 'mobile-cameras.json');
+      await DebugService.writeDataForDebug(data, 'mobile-cameras.json');
       // 3. finalise run
       scrapeRun.runEnd = DateTime.utc().toISO();
       scrapeRun.runResult = 'SUCCESS';
@@ -250,23 +251,6 @@ export class SapolDataService {
     try {
       // todo sync loaded results with saved results
       //  save to supabase
-    } catch (err) {
-      console.error(err);
-    }
-  }
-
-  /**
-   *
-   * @param data
-   * @param fileName
-   * @private
-   */
-  public static async writeDataForDebug(data: Object | string, fileName: string) {
-    try {
-      const filePath = path.join('src/debug', fileName);
-      const writeValue = typeof data === 'string' ? data : JSON.stringify(data);
-      await writeFile(filePath, writeValue, {encoding: "utf8"});
-      console.log("Wrote mobile-cameras.json");
     } catch (err) {
       console.error(err);
     }

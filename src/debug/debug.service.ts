@@ -1,0 +1,20 @@
+import path from "node:path";
+import {writeFile} from "fs/promises";
+
+export class DebugService {
+  /**
+   * @param data
+   * @param fileName
+   * @private
+   */
+  public static async writeDataForDebug(data: Object | string, fileName: string) {
+    try {
+      const filePath = path.join('src/debug', fileName);
+      const writeValue = typeof data === 'string' ? data : JSON.stringify(data);
+      await writeFile(filePath, writeValue, {encoding: "utf8"});
+      console.log("Wrote mobile-cameras.json");
+    } catch (err) {
+      console.error(err);
+    }
+  }
+}

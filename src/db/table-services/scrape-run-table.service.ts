@@ -1,8 +1,8 @@
 import {SupabaseClient} from "@supabase/supabase-js";
 
 import {type SupabaseQuery} from "../sapol-db.service.ts";
-import {type MobileSpeedCameraLocationDb} from "../../schemas/db/MobileSpeedCameraLocationsSchemaDb.ts";
-import {type ScrapeRunDb, type ScrapeRunInsertDb} from "../../schemas/db/ScrapeRunSchemaDb.ts";
+import {type MobileSpeedCameraLocationDb} from "../../schemas/db/mobile-speed-camera-locations-db.schema.ts";
+import {type ScrapeRunDb, type ScrapeRunInsertDb} from "../../schemas/db/scrape-run-db.schema.ts";
 
 // FIXME: Refactor to extend generic class for consistency
 export class ScrapeRunTableService {
