@@ -17,11 +17,11 @@ export class ScrapeRunTableService {
     return (this.db?.from(this.tableName)?.insert(rows).select() || Promise.resolve(null));
   }
 
-  updateScrapeRun(rows: ScrapeRunDb): SupabaseQuery<MobileSpeedCameraLocationDb> {
+  updateScrapeRun(run: ScrapeRunDb): SupabaseQuery<MobileSpeedCameraLocationDb> {
     if (this.db) {
       return this.db.from(this.tableName)
-        .update(rows)
-        .eq('scrape_run_id', rows.scrape_run_id)
+        .update(run)
+        .eq('scrape_run_id', run.scrape_run_id)
         .select();
     }
     return Promise.resolve(null);

@@ -8,7 +8,7 @@ import {SupaDatabase} from "../db/sapol-db.service.ts";
 import {type MobileSpeedCameraLocationDb} from "../schemas/db/mobile-speed-camera-locations-db.schema.ts";
 import {CameraLocationTableService} from "../db/table-services/camera-location-table.service.ts";
 import {ScrapeRunTableService} from "../db/table-services/scrape-run-table.service.ts";
-import {ScrapingController} from "../controllers/scraping-controller.ts";
+import {ScrapingController} from "../scraping/scraping.controller.ts";
 
 const testingRoutes = Router();
 const db: SupabaseClient | null = SupaDatabase.getInstance();
@@ -38,7 +38,7 @@ testingRoutes.get("/scrape-runs", async (req, res) => {
 });
 
 testingRoutes.get("/save", async (req, res) => {
-  const result = await scrapingController.scrapeAndSaveResults(res);
+  await scrapingController.scrapeAndSaveResults(res);
 });
 
 testingRoutes.get('/locations', async (req, res) => {

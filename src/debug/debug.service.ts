@@ -10,7 +10,7 @@ export class DebugService {
   public static async writeDataForDebug(data: Object | string, fileName: string) {
     try {
       const filePath = path.join('src/debug', fileName);
-      const writeValue = typeof data === 'string' ? data : JSON.stringify(data);
+      const writeValue = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
       await writeFile(filePath, writeValue, {encoding: "utf8"});
       console.log("Wrote mobile-cameras.json");
     } catch (err) {

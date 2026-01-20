@@ -16,12 +16,38 @@ import { type Cheerio} from "cheerio";
 import { type ZodSafeParseResult} from "zod";
 import {type ScrapeRun} from "./schemas/domain/scrape-run.schema.ts";
 import { type RegionType} from "./schemas/domain/region-type.enum.ts";
-import { type MobileSpeedCameraLocationDb} from "./schemas/db/mobile-speed-camera-locations-db.schema.ts";
 import { type ScrapeRunInsertDb} from "./schemas/db/scrape-run-db.schema.ts";
 import {DebugService} from "./debug/debug.service.ts";
 
 export class SapolScraperService {
-  generateHeader(host: string, userAgent?: string): {[key: string]: string} {
+  /**
+   * Main method to:
+   * 1. Load HTML from SAPOL page
+   * 2. Parse HTML to MobileSpeedCameraLocation
+   * 3. Save/write MobileSpeedCameraLocations for debugging.
+   */
+  public async scrapeLocations(scrapeRun: ScrapeRun): Promise<{ locations: MobileSpeedCameraLocation[], scrapeRun: ScrapeRun }> {
+    let data: MobileSpeedCameraLocation[] = [];
+    try {
+      // 1. load HTML from SAPOL site
+      const html = await this.loadPageHtml();
+      await DebugService.writeDataForDebug(html, 'last-scrape.html');
+      // 2. Parse html into data
+      data = this.parseHtmlPage(html || '', scrapeRun);
+      // 2.1 save debug information
+      await DebugService.writeDataForDebug(data, 'mobile-cameras.json');
+      // 3. finalise run
+      scrapeRun.runEnd = DateTime.utc().toISO();
+      scrapeRun.runResult = 'SUCCESS';
+    } catch (error) {
+      console.error(error);
+      // TODO throw error instead
+      scrapeRun.runResult = 'FAIL';
+    }
+    return { locations: data, scrapeRun };
+  }
+
+  private generateHeader(host: string, userAgent?: string): {[key: string]: string} {
     // todo set up automatic header generation if request fails
     return {
       "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
@@ -43,7 +69,7 @@ export class SapolScraperService {
     }
   }
 
-  generateHtmlRequest(hostname: string, requestPath: string, protocol: string): Promise<string> {
+  private generateHtmlRequest(hostname: string, requestPath: string, protocol: string): Promise<string> {
     return new Promise((resolve, reject) => {
       const options: RequestOptions = {
         hostname: hostname,
@@ -137,37 +163,6 @@ export class SapolScraperService {
   }
 
   /**
-   * Main method to:
-   * 1. Load HTML from SAPOL page
-   * 2. Parse HTML to MobileSpeedCameraLocation
-   * 3. Save/write MobileSpeedCameraLocation
-   */
-  async scrapeLocations(scrapeRun: ScrapeRun): Promise<{ locations: MobileSpeedCameraLocation[], scrapeRun: ScrapeRun }> {
-    // TODO check if data has already been saved for date range (if no date check for week (from now/Today)
-    // if YES - use saved results (if they are less than 2 days old)
-
-    // if NO -
-    // ELSE - load html from SAPOL site
-    let data: MobileSpeedCameraLocation[] = [];
-    try {
-      // 1. load HTML from SAPOL site
-      const html = await this.loadPageHtml();
-      await DebugService.writeDataForDebug(html, 'last-scrape.html');
-      // 2. Parse html into data
-      data = this.parseHtmlPage(html || '', scrapeRun);
-      // 2.1 save debug information
-      await DebugService.writeDataForDebug(data, 'mobile-cameras.json');
-      // 3. finalise run
-      scrapeRun.runEnd = DateTime.utc().toISO();
-      scrapeRun.runResult = 'SUCCESS';
-    } catch (error) {
-      console.error(error);
-      scrapeRun.runResult = 'FAIL';
-    }
-    return { locations: data, scrapeRun };
-  }
-
-  /**
    * Parses the scraped HTML elements to MobileSpeedCameraLocation[] based on the regionType provided
    * @param regionType
    * @param elements
@@ -232,27 +227,12 @@ export class SapolScraperService {
   }
 }
 
-/**
- *
- */
 export class SapolDataService {
+  // TODO find a home
   static generateScrapeRun(): ScrapeRunInsertDb {
     return {
       run_start: DateTime.utc().toISO(),
       run_result: 'PENDING'
-    }
-  }
-
-  /**
-   * Upserts camera location records
-   * @param data
-   */
-  async saveLocations(data: MobileSpeedCameraLocationDb) {
-    try {
-      // todo sync loaded results with saved results
-      //  save to supabase
-    } catch (err) {
-      console.error(err);
     }
   }
 }
