@@ -28,20 +28,20 @@ if (isDevelop) {
  * @param commaString
  */
 const commaStringToArray = (commaString: string) =>
-  commaString.split(',').map(subStr => subStr.trim()).filter(subStr => !!subStr)
+  commaString.split(',').map(subStr => subStr.trim()).filter(subStr => !!subStr);
 
 const mockPathSchema = z.object({
   SCRAPED: z.string().startsWith('/').endsWith('.html'),
   SUCCESS: z.string().startsWith('/').endsWith('.html'),
   ERROR: z.string().startsWith('/').endsWith('.html'),
   SIMPLE: z.string().startsWith('/').endsWith('.html'),
-})
+});
 
 const requestOptionsSchema = z.object({
   path: z.string().startsWith('/'),
   host: z.string(),
   protocol: z.enum(['https:', 'http:']),
-})
+});
 
 // define the env schema
 const envSchema = z.object({
@@ -52,20 +52,20 @@ const envSchema = z.object({
   API_URL: z.string().startsWith('http://', 'https://'),
   PORT: z.coerce.number().positive().default(3000),
   CORS_ORIGINS: z.string().transform(commaStringToArray).pipe(z.string().array()),
-  SAPOL_LOCATIONS_URL: z.string().startsWith('https://'),
+  REQUEST_TIMEOUT: z.coerce.number().default(60_000),
+  // DB - Supabse
+  NEXT_PUBLIC_SUPABASE_URL: z.string().startsWith('https://').endsWith('supabase.co'),
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(10),
+  PRIVATE_SUPABASE_NODE_SERVICE_KEY: z.string().min(10),
   // SAPOL
   // JSON object string
   SAPOL_LOCATIONS_REQUEST_OPTS: z.string().transform((str) => JSON.parse(str)).pipe(requestOptionsSchema),
   SAPOL_MOCK_RESPONSE_FILE_PATHS: z.string().transform((str) => JSON.parse(str)).pipe(mockPathSchema),
-  // todo
-  // SAPOL_GET_EXPIATION_DATA_ENDPOINT: z.string().startsWith('https://'),
-  // JSON object string
-  SAPOL_MOCK_RESPONSE_FILE_PATHS: z.string().transform((str) => JSON.parse(str)).pipe(mockPathSchema),
-  REQUEST_TIMEOUT: z.coerce.number().default(60_000)
+  SA_TIMEZONE_ID: z.string().includes('/'),
 });
 
 // Type for the validated environment
-export type Env = z.infer<typeof envSchema>
+export type Env = z.infer<typeof envSchema>;
 // export verified env
 
 let env: Env;

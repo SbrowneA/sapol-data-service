@@ -25,12 +25,12 @@ export const MobileSpeedCameraLocationSchema = z.object({
   // - Soft delete in case of locations being removed during the current 7-day period that was saved
   isActive: z.boolean().default(true),
   // Scrape run which last touched the
-  scrapeRunId: z.uuid(),
+  scrapeRunId: z.int(),
   meta: z.object({
       // For debugging: the css class that was set for the element when scraped
       cssClass: z.string().optional(),
       // Tracks all scrape runs that have affected this record appended (oldest to newest)
-      allScrapeRuns: z.string().array()
+      allScrapeRuns: z.int().array()
   })
 }).refine(record => record.startDate <= record.endDate, {
   message: 'startDate must domain <= endDate',

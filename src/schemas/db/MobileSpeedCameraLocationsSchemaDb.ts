@@ -15,10 +15,10 @@ export const MobileSpeedCameraLocationsSchemaDb = z.object({
   created_at: z.iso.datetime(),
   edited_at: z.iso.datetime().optional(),
   is_active: z.boolean(),
-  scrape_run_id: z.uuid(),
+  scrape_run_id: z.int(),
   meta: z.object({
     css_class: z.string().optional(),
-    all_scrape_run_ids: z.string().array()
+    all_scrape_run_ids: z.int().array()
   })
 }).refine(record => record.start_date <= record.end_date, {
   message: 'start_date must be <= end_date',

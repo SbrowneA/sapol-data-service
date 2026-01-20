@@ -10,8 +10,8 @@ import {
   type MobileSpeedCameraLocationDb, type MobileSpeedCameraLocationInsertDb, MobileSpeedCameraLocationsInsertSchemaDb,
   MobileSpeedCameraLocationsSchemaDb
 } from "../schemas/db/MobileSpeedCameraLocationsSchemaDb.ts";
-import {type ScrapeRun, ScrapeRunSchema} from "../schemas/domain/ScrapeRunSchema.ts";
-import {type ScrapeRunDb, ScrapeRunSchemaDb} from "../schemas/db/ScrapeRunSchemaDb.ts";
+import {type ScrapeRun, type ScrapeRunInsert, ScrapeRunSchema} from "../schemas/domain/ScrapeRunSchema.ts";
+import {type ScrapeRunDb, type ScrapeRunInsertDb, ScrapeRunSchemaDb} from "../schemas/db/ScrapeRunSchemaDb.ts";
 
 /**
  * Uses zod schemas to parse data between layers:
@@ -19,8 +19,7 @@ import {type ScrapeRunDb, ScrapeRunSchemaDb} from "../schemas/db/ScrapeRunSchema
  * - to Domain/BE,
  * - to DB (and vice versa).
  * */
-export class DataMapping {
-
+export class DataMappingService {
   public static cameraLocationBeToDb(value: MobileSpeedCameraLocation): MobileSpeedCameraLocationDb {
     return MobileSpeedCameraLocationsSchemaDb.parse({
       // domain level may be null
@@ -86,15 +85,28 @@ export class DataMapping {
       scrape_run_id: value.scrapeRunId,
       run_start: value.runStart,
       run_end: value.runEnd,
-      run_result: value.runResult
+      run_result: value.runResult,
+      created_at: value.createdAt,
+      edited_at: value.editedAt
     });
   }
 
   public static scrapeRunDbToBe(value: ScrapeRunDb): ScrapeRun {
     return ScrapeRunSchema.parse({
       scrapeRunId: value.scrape_run_id,
+      runStart: value.created_at,
+      runEnd: value.run_end || null,
+      runResult: value.run_result,
+      createdAt: value.created_at,
+      editedAt: value.edited_at || null
+      // TODO: enable offset fpr zod.iso.datetime() in service or fix on fix on DB side? e.g.
+      // runStart: DateTime.fromISO(value.created_at).toUTC().toISO(),
+    });
+  }
+
+  public static scrapeRunDbToBeInsert(value: ScrapeRunInsertDb): ScrapeRunInsert {
+    return ScrapeRunSchema.parse({
       runStart: value.run_start,
-      runEnd: value.run_end,
       runResult: value.run_result
     });
   }

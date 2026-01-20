@@ -2,7 +2,6 @@ import {readFile, writeFile} from "fs/promises";
 import {get as httpsGet, type RequestOptions} from 'node:https'
 import path from 'node:path'
 import {fileURLToPath} from "node:url";
-import * as crypto from "node:crypto";
 
 import {DateTime} from 'luxon';
 import * as cheerio from "cheerio";
@@ -13,15 +12,14 @@ import {
   type MobileSpeedCameraLocation,
   MobileSpeedCameraLocationSchema
 } from "./schemas/domain/MobileSpeedCameraLocationSchema.ts";
-import {type Cheerio} from "cheerio";
-import {type ZodSafeParseResult} from "zod";
+import { type Cheerio} from "cheerio";
+import { type ZodSafeParseResult} from "zod";
 import {type ScrapeRun} from "./schemas/domain/ScrapeRunSchema.ts";
-import {type RegionType} from "./schemas/domain/regionTypeEnum.ts";
-import {type MobileSpeedCameraLocationDb} from "./schemas/db/MobileSpeedCameraLocationsSchemaDb.ts";
+import { type RegionType} from "./schemas/domain/regionTypeEnum.ts";
+import { type MobileSpeedCameraLocationDb} from "./schemas/db/MobileSpeedCameraLocationsSchemaDb.ts";
+import { type ScrapeRunInsertDb} from "./schemas/db/ScrapeRunSchemaDb.ts";
 
-const uuid = () => crypto.randomUUID();
-
-export class SapolScraper {
+export class SapolScraperService {
   generateHeader(host: string, userAgent?: string): {[key: string]: string} {
     // todo set up automatic header generation if request fails
     return {
@@ -39,7 +37,7 @@ export class SapolScraper {
       "Sec-Fetch-Site": "none",
       "Sec-Fetch-User": "?1",
       "Upgrade-Insecure-Requests": "1",
-      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+      "User-Agent": userAgent || "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
       "X-Amzn-Trace-Id": "Root=1-6969f7e1-358745d37af42cb925356931"
     }
   }
@@ -90,7 +88,7 @@ export class SapolScraper {
 
   /**
    * Mocks response to request made to SAPOL page.
-   * @see SapolScraper.loadPageHtml()
+   * @see SapolScraperService.loadPageHtml()
    */
   private async loadPageHtmlMock(): Promise<string> {
     let htmlString = '';
@@ -143,65 +141,29 @@ export class SapolScraper {
    * 2. Parse HTML to MobileSpeedCameraLocation
    * 3. Save/write MobileSpeedCameraLocation
    */
-  async scrapeLocations(): Promise<{ locations: MobileSpeedCameraLocation[], scrapeRun: ScrapeRun }> {
+  async scrapeLocations(scrapeRun: ScrapeRun): Promise<{ locations: MobileSpeedCameraLocation[], scrapeRun: ScrapeRun }> {
     // TODO check if data has already been saved for date range (if no date check for week (from now/Today)
     // if YES - use saved results (if they are less than 2 days old)
 
     // if NO -
     // ELSE - load html from SAPOL site
-    const scrapeRun: ScrapeRun = {
-      scrapeRunId: uuid(),
-      runStart: DateTime.utc().toISO(),
-      runResult: 'PENDING'
-    }
-
     let data: MobileSpeedCameraLocation[] = [];
     try {
       // 1. load HTML from SAPOL site
       const html = await this.loadPageHtml();
-      await this.writeDataForDebug(html, 'last-scrape.html');
+      await SapolDataService.writeDataForDebug(html, 'last-scrape.html');
       // 2. Parse html into data
       data = this.parseHtmlPage(html || '', scrapeRun);
       // 2.1 save debug information
-      await this.writeDataForDebug(data, 'mobile-cameras.json');
+      await SapolDataService.writeDataForDebug(data, 'mobile-cameras.json');
       // 3. finalise run
       scrapeRun.runEnd = DateTime.utc().toISO();
       scrapeRun.runResult = 'SUCCESS';
     } catch (error) {
+      console.error(error);
       scrapeRun.runResult = 'FAIL';
     }
     return { locations: data, scrapeRun };
-  }
-
-
-  /**
-   *
-   * @param data
-   * @param fileName
-   * @private
-   */
-  private async writeDataForDebug(data: Object | string, fileName: string) {
-    try {
-      const filePath = path.join('src/debug', fileName);
-      const writeValue = typeof data === 'string' ? data : JSON.stringify(data);
-      await writeFile(filePath, writeValue, {encoding: "utf8"});
-      console.log("Wrote mobile-cameras.json");
-    } catch (err) {
-      console.error(err);
-    }
-  }
-
-  /**
-   * Upserts camera location records
-   * @param data
-   */
-  async saveLocations(data: MobileSpeedCameraLocationDb) {
-    try {
-      // todo sync loaded results with saved results
-      //  save to supabase
-    } catch (err) {
-      console.error(err);
-    }
   }
 
   /**
@@ -211,7 +173,7 @@ export class SapolScraper {
    * @param scrapeRunId
    * @private
    */
-  private paresElementsToLocations(regionType: RegionType, elements: Cheerio<Element>, scrapeRunId: string): MobileSpeedCameraLocation[] {
+  private paresElementsToLocations(regionType: RegionType, elements: Cheerio<Element>, scrapeRunId: number): MobileSpeedCameraLocation[] {
     // locations map to de-duplicate values (Duplicates can still exist in same SAPOL list)
     const locationsMap: Map<string, MobileSpeedCameraLocation> = new Map();
 
@@ -242,10 +204,6 @@ export class SapolScraper {
           location: text,
           regionType: regionType,
           createdAt: DateTime.utc().toISO(),
-          // fixme comments
-          // editedAt: DateTime.utc().toISO(),
-          // assume true until deleted
-          // isActive: true,
           scrapeRunId: scrapeRunId,
           meta: {
             cssClass: cssClass || undefined,
@@ -274,9 +232,43 @@ export class SapolScraper {
 }
 
 /**
- * TODO
- * Database for historical reference of streets.
- * - Reduces frequency of calls to SAPOL site.
+ *
  */
-export class SapolDataService { }
+export class SapolDataService {
+  static generateScrapeRun(): ScrapeRunInsertDb {
+    return {
+      run_start: DateTime.utc().toISO(),
+      run_result: 'PENDING'
+    }
+  }
 
+  /**
+   * Upserts camera location records
+   * @param data
+   */
+  async saveLocations(data: MobileSpeedCameraLocationDb) {
+    try {
+      // todo sync loaded results with saved results
+      //  save to supabase
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  /**
+   *
+   * @param data
+   * @param fileName
+   * @private
+   */
+  public static async writeDataForDebug(data: Object | string, fileName: string) {
+    try {
+      const filePath = path.join('src/debug', fileName);
+      const writeValue = typeof data === 'string' ? data : JSON.stringify(data);
+      await writeFile(filePath, writeValue, {encoding: "utf8"});
+      console.log("Wrote mobile-cameras.json");
+    } catch (err) {
+      console.error(err);
+    }
+  }
+}
