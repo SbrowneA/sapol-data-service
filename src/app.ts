@@ -2,6 +2,8 @@ import express from 'express';
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan"
+import {fileURLToPath} from "node:url";
+import path from "node:path";
 
 import { env, isTest } from '../env.ts'
 
@@ -17,6 +19,12 @@ app.use(express.json());
 // Helps handle query strings
 app.use(express.urlencoded({extended: true}));
 app.use(morgan('dev', { skip: () => isTest }));
+// serve static files
+const __filename = fileURLToPath(import.meta.url);
+const __dirname =  path.dirname(__filename);
+
+console.log(`Public (static) files dir: ${__dirname}\\public`);
+app.use(express.static(path.join(__dirname, "public")));
 
 app.listen(env.PORT, () =>{
   console.log(`Server running on ${env.API_URL}:${env.PORT}`);
