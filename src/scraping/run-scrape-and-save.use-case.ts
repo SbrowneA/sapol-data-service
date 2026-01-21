@@ -2,7 +2,7 @@ import {SupabaseClient} from "@supabase/supabase-js";
 import {type PostgrestResponse} from "@supabase/postgrest-js";
 import {DateTime} from "luxon";
 
-import {SapolDataService, SapolScraperService} from "../sapol-scraper.service.ts";
+import {SapolDataService, SapolScraperService} from "./sapol-scraper.service.ts";
 import {ScrapeRunTableService} from "../db/table-services/scrape-run-table.service.ts";
 import {CameraLocationTableService} from "../db/table-services/camera-location-table.service.ts";
 import {MobileSpeedCameraLocationReconciliationService, type ReconciliationMap} from "../db/data-reconciliation.service.ts";

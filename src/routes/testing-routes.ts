@@ -53,6 +53,6 @@ testingRoutes.get('/locations', async (req, res) => {
     },
     data: queryResult.data
   });
-})
+});
 
 export default testingRoutes;

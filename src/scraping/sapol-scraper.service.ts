@@ -7,17 +7,17 @@ import {DateTime} from 'luxon';
 import * as cheerio from "cheerio";
 import {Element} from 'domhandler';
 
-import {env, isLocal} from "../env.ts";
+import {env, isLocal} from "../../env.ts";
 import {
   type MobileSpeedCameraLocation,
   MobileSpeedCameraLocationSchema
-} from "./schemas/domain/mobile-speed-camera-location.schema.ts";
-import { type Cheerio} from "cheerio";
-import { type ZodSafeParseResult} from "zod";
-import {type ScrapeRun} from "./schemas/domain/scrape-run.schema.ts";
-import { type RegionType} from "./schemas/domain/region-type.enum.ts";
-import { type ScrapeRunInsertDb} from "./schemas/db/scrape-run-db.schema.ts";
-import {DebugService} from "./debug/debug.service.ts";
+} from "../schemas/domain/mobile-speed-camera-location.schema.ts";
+import { type Cheerio } from "cheerio";
+import { type ZodSafeParseResult } from "zod";
+import { type ScrapeRun } from "../schemas/domain/scrape-run.schema.ts";
+import { type RegionType, regionTypeValues} from "../schemas/domain/region-type.enum.ts";
+import { type ScrapeRunInsertDb} from "../schemas/db/scrape-run-db.schema.ts";
+import {DebugService} from "../debug/debug.service.ts";
 
 export class SapolScraperService {
   /**
@@ -123,8 +123,6 @@ export class SapolScraperService {
       const __filename = fileURLToPath(import.meta.url);
       const __dirname = path.dirname(__filename);
       const filePath = path.join(__dirname, env.SAPOL_MOCK_RESPONSE_FILE_PATHS.SCRAPED);
-
-      console.log(filePath);
       htmlString = await readFile(filePath, {encoding: 'utf8'});
     } catch (err) {
       console.error(err);
@@ -158,6 +156,13 @@ export class SapolScraperService {
     console.info('country elements:', countryElements.length);
     console.info('country locations:', countryLocations.length);
     console.log('unique locations: ', metroLocations.length + countryLocations.length);
+
+    // TODO: alert support that no results were scraped and stop scrape run
+    if (!metroLocations.length) {
+      throw new Error('There were no valid locations scraped for ' + regionTypeValues.METRO);
+    } else if (!countryLocations.length) {
+      throw new Error('There were no valid locations scraped for ' + regionTypeValues.COUNTRY);
+    }
 
     return [...metroLocations, ...countryLocations];
   }
