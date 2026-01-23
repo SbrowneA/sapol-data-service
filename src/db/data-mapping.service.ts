@@ -94,7 +94,7 @@ export class DataMappingService {
   public static scrapeRunDbToBe(value: ScrapeRunDb): ScrapeRun {
     return ScrapeRunSchema.parse({
       scrapeRunId: value.scrape_run_id,
-      runStart: value.created_at,
+      runStart: value.run_start,
       runEnd: value.run_end || null,
       runResult: value.run_result,
       createdAt: value.created_at,
