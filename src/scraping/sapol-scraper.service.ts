@@ -88,7 +88,7 @@ export class SapolScraperService {
         res.on('data', (chunk) => body += chunk);
 
         res.on('end', () => {
-          console.log('Response from', res.url, body);
+          console.log('Response from', res.url, body.length);
           resolve(body);
         })
       }).on('error', (err) => {
@@ -101,10 +101,11 @@ export class SapolScraperService {
    * Loads the HTML to be parsed from the SAPOL page.
    */
   private async loadPageHtml() {
-    if (isLocal) {
+    if (env.USE_MOCK_HTML) {
+      console.log('Using Mock HTML form SAPOL');
       return this.loadPageHtmlMock();
     } else {
-      console.log('making GET request');
+      console.log('Making GET request to SAPOL');
       return this.generateHtmlRequest(
         env.SAPOL_LOCATIONS_REQUEST_OPTS.host,
         env.SAPOL_LOCATIONS_REQUEST_OPTS.path,

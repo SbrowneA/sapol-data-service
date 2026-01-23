@@ -61,6 +61,8 @@ const envSchema = z.object({
   // JSON object string
   SAPOL_LOCATIONS_REQUEST_OPTS: z.string().transform((str) => JSON.parse(str)).pipe(requestOptionsSchema),
   SAPOL_MOCK_RESPONSE_FILE_PATHS: z.string().transform((str) => JSON.parse(str)).pipe(mockPathSchema),
+  // favoring using mock HTML over making reques
+  USE_MOCK_HTML: z.transform((v): boolean => v !== 'false').default(true),
   SA_TIMEZONE_ID: z.string().includes('/'),
 });
 
