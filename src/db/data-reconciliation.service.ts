@@ -2,7 +2,7 @@ import {type SupabaseQuery} from "./sapol-db.service.ts";
 import type {
   MobileSpeedCameraLocationDb,
   MobileSpeedCameraLocationInsertDb
-} from "../schemas/db/mobile-speed-camera-locations-db.schema.ts";
+} from "../schemas/db/mobile-speed-camera-location-db.schema.ts";
 import {type RegionType} from "../schemas/domain/region-type.enum.ts";
 import {CameraLocationTableService} from "./table-services/camera-location-table.service.ts";
 

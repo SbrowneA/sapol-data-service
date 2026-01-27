@@ -12,7 +12,7 @@ import {DataMappingService} from "../db/data-mapping.service.ts";
 import type {
   MobileSpeedCameraLocationDb,
   MobileSpeedCameraLocationInsertDb
-} from "../schemas/db/mobile-speed-camera-locations-db.schema.ts";
+} from "../schemas/db/mobile-speed-camera-location-db.schema.ts";
 
 export class RunScrapeAndSaveResultsUseCase {
   db: SupabaseClient;

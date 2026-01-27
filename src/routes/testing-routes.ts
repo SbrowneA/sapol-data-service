@@ -5,7 +5,7 @@ import {SupabaseClient} from "@supabase/supabase-js";
 
 import {DataMappingService} from "../db/data-mapping.service.ts";
 import {SupaDatabase} from "../db/sapol-db.service.ts";
-import {type MobileSpeedCameraLocationDb} from "../schemas/db/mobile-speed-camera-locations-db.schema.ts";
+import {type MobileSpeedCameraLocationDb} from "../schemas/db/mobile-speed-camera-location-db.schema.ts";
 import {CameraLocationTableService} from "../db/table-services/camera-location-table.service.ts";
 import {ScrapeRunTableService} from "../db/table-services/scrape-run-table.service.ts";
 import {ScrapingController} from "../scraping/scraping.controller.ts";

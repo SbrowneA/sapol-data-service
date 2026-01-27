@@ -8,8 +8,8 @@ import {
 } from "../schemas/domain/mobile-speed-camera-location.schema.ts";
 import {
   type MobileSpeedCameraLocationDb, type MobileSpeedCameraLocationInsertDb, MobileSpeedCameraLocationsInsertSchemaDb,
-  MobileSpeedCameraLocationsDbSchema
-} from "../schemas/db/mobile-speed-camera-locations-db.schema.ts";
+  MobileSpeedCameraLocationDbSchema
+} from "../schemas/db/mobile-speed-camera-location-db.schema.ts";
 import {type ScrapeRun, type ScrapeRunInsert, ScrapeRunSchema} from "../schemas/domain/scrape-run.schema.ts";
 import {type ScrapeRunDb, type ScrapeRunInsertDb, ScrapeRunDbSchema} from "../schemas/db/scrape-run-db.schema.ts";
 
@@ -21,7 +21,7 @@ import {type ScrapeRunDb, type ScrapeRunInsertDb, ScrapeRunDbSchema} from "../sc
  * */
 export class DataMappingService {
   public static cameraLocationBeToDb(value: MobileSpeedCameraLocation): MobileSpeedCameraLocationDb {
-    return MobileSpeedCameraLocationsDbSchema.parse({
+    return MobileSpeedCameraLocationDbSchema.parse({
       // domain level may be null
       id: value.id,
       start_date: value.startDate,

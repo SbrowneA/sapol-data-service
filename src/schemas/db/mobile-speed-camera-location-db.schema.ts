@@ -6,7 +6,7 @@ import { RegionTypeEnum } from "../domain/region-type.enum.ts";
  * @see MobileSpeedCameraLocationResponseSchema for FE/API
  * @see MobileSpeedCameraLocationSchema for BE
  */
-export const MobileSpeedCameraLocationsDbSchema = z.object({
+export const MobileSpeedCameraLocationDbSchema = z.object({
   id: z.bigint(),
   start_date: z.iso.date(),
   end_date: z.iso.date(),
@@ -25,9 +25,9 @@ export const MobileSpeedCameraLocationsDbSchema = z.object({
 });
 
 export const MobileSpeedCameraLocationsInsertSchemaDb =
-  MobileSpeedCameraLocationsDbSchema.omit({ id: true, created_at: true, edited_at: true});
+  MobileSpeedCameraLocationDbSchema.omit({ id: true, created_at: true, edited_at: true});
 
 
-export type MobileSpeedCameraLocationDb = z.infer<typeof MobileSpeedCameraLocationsDbSchema>;
+export type MobileSpeedCameraLocationDb = z.infer<typeof MobileSpeedCameraLocationDbSchema>;
 // Defines values that will be inserted into the databaes
 export type MobileSpeedCameraLocationInsertDb = z.infer<typeof MobileSpeedCameraLocationsInsertSchemaDb>;

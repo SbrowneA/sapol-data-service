@@ -4,7 +4,7 @@ import {type RegionType} from "../../schemas/domain/region-type.enum.ts";
 import type {
   MobileSpeedCameraLocationDb,
   MobileSpeedCameraLocationInsertDb
-} from "../../schemas/db/mobile-speed-camera-locations-db.schema.ts";
+} from "../../schemas/db/mobile-speed-camera-location-db.schema.ts";
 import {type SupabaseQuery} from "../sapol-db.service.ts";
 
 // FIXME: Refactor to extend generic class for consistency
