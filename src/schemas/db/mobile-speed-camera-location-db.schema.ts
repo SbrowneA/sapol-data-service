@@ -11,8 +11,11 @@ export const MobileSpeedCameraLocationDbSchema = z.object({
   start_date: z.iso.date(),
   end_date: z.iso.date(),
   location: z.string().min(5),
+  // With the street type (RD/ROAD)
   street_norm: z.string().min(3),
   suburb_norm: z.string().min(3),
+  // With the RD/ROAD
+  // street_canonical: z.string().min(3),
   region_type: RegionTypeEnum,
   created_at: z.iso.datetime(),
   updated_at: z.iso.datetime().optional(),
