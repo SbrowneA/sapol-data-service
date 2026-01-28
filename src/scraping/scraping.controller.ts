@@ -27,6 +27,7 @@ export class ScrapingController {
       const { scrapeRun, toInsert, toUpdate, toDeactivate, reconciliationMap } = await scrapeAndSaveUseCase.execute();
       res.json({message: 'queries run', scrapeData: Array.from(reconciliationMap), toDeactivate, toUpdate, toInsert, scrapeRun});
     } catch (error) {
+      console.error('something went wrong', error);
       res.status(500).json({message: 'Something went wrong while executing scrape run', error});
     }
   }

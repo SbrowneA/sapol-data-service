@@ -15,11 +15,14 @@ export const MobileSpeedCameraLocationSchema = z.object({
   endDate: z.iso.date(),
   // raw string value that was retrieved from SAPOL
   location: z.string().min(5),
+  // Normalised location value split at the comma ","
+  streetNormalised: z.string().min(3),
+  suburbNormalised: z.string().min(3),
   // Type of camera location, provided by SAPOL in two different lists with different sets of dates
   regionType: RegionTypeEnum,
-  // when the record was created
+  // when the record was inserted to the DB
   createdAt: z.iso.datetime({offset: true}),
-  // if and when the record was last edited
+  // if and when the record was last edited in the DB
   editedAt: z.iso.datetime().optional(),
   // Whether the record is currently shown on the SAPOL site (assume true until deleted)
   // - Soft delete in case of locations being removed during the current 7-day period that was saved

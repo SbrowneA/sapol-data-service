@@ -48,7 +48,9 @@ export class SapolScraperService {
   }
 
   private generateHeader(host: string, userAgent?: string): {[key: string]: string} {
-    // todo set up automatic header generation if request fails
+    // TODO:
+    //  1. store header in Supabse Storage or env file
+    //  2. Set up automatic header re-generation - in case request fails
     return {
       "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
       // "Accept-Encoding": "gzip, deflate, br, zstd",
@@ -196,14 +198,17 @@ export class SapolScraperService {
           const dateEnd: string = (el.attribs as any)?.['dateend'] || '';
           endDate = DateTime.fromFormat(dateEnd, "dd/MM/yyyy").toFormat('yyyy-MM-dd');
         }
-        let text: string = (el.children?.[0] as any)?.data || null;
-        text = text.replace(/\s*\r?\n\s*/g, ' ').trim();
+        let locationText: string = (el.children?.[0] as any)?.data || null;
+        locationText = locationText.replace(/\s*\r?\n\s*/g, ' ').trim();
+        const [street = '', suburb = ''] = locationText.toUpperCase().split(',');
 
         // Zod.parse() to validate scraped value
         const result: ZodSafeParseResult<MobileSpeedCameraLocation> = MobileSpeedCameraLocationSchema.safeParse({
           startDate: startDate,
           endDate: endDate,
-          location: text,
+          location: locationText,
+          streetNormalised: street.trim(),
+          suburbNormalised: suburb.trim(),
           regionType: regionType,
           createdAt: DateTime.utc().toISO(),
           scrapeRunId: scrapeRunId,
