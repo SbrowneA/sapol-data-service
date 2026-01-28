@@ -7,9 +7,9 @@ import {DateTime} from 'luxon';
 import * as cheerio from "cheerio";
 import {Element} from 'domhandler';
 
-import {env, isLocal} from "../../env.ts";
+import { env } from "../../env.ts";
 import {
-  type MobileSpeedCameraLocation,
+  type MobileSpeedCameraLocationInsert,
   MobileSpeedCameraLocationSchema
 } from "../schemas/domain/mobile-speed-camera-location.schema.ts";
 import { type Cheerio } from "cheerio";
@@ -26,8 +26,8 @@ export class SapolScraperService {
    * 2. Parse HTML to MobileSpeedCameraLocation
    * 3. Save/write MobileSpeedCameraLocations for debugging.
    */
-  public async scrapeLocations(scrapeRun: ScrapeRun): Promise<{ locations: MobileSpeedCameraLocation[], scrapeRun: ScrapeRun }> {
-    let data: MobileSpeedCameraLocation[] = [];
+  public async scrapeLocations(scrapeRun: ScrapeRun): Promise<{ locations: MobileSpeedCameraLocationInsert[], scrapeRun: ScrapeRun }> {
+    let data: MobileSpeedCameraLocationInsert[] = [];
     try {
       // 1. load HTML from SAPOL site
       const html = await this.loadPageHtml();
@@ -139,7 +139,7 @@ export class SapolScraperService {
    * @param scrapeRun : ScrapeRun
    * @private
    */
-  private parseHtmlPage(html: string, scrapeRun: ScrapeRun): MobileSpeedCameraLocation[] {
+  private parseHtmlPage(html: string, scrapeRun: ScrapeRun): MobileSpeedCameraLocationInsert[] {
     console.info('Parsing HTML:', html.length, 'chars');
 
     const $ = cheerio.load(html);
@@ -147,12 +147,12 @@ export class SapolScraperService {
     const metroContainers = $('div.container').not('.country');
     // getting the first metro list (ul) because each metro-list contains all the metro locations
     const metroElements = metroContainers.children('ul').first().children('li');
-    const metroLocations: MobileSpeedCameraLocation[] = this.paresElementsToLocations("METRO", metroElements, scrapeRun.scrapeRunId);
+    const metroLocations: MobileSpeedCameraLocationInsert[] = this.paresElementsToLocations("METRO", metroElements, scrapeRun.scrapeRunId);
 
     // Parse country locations
     const countryContainer = $('div.container.country');
     const countryElements = countryContainer.children('ul.countrylist').children('li')
-    const countryLocations: MobileSpeedCameraLocation[] = this.paresElementsToLocations("COUNTRY", countryElements, scrapeRun.scrapeRunId);
+    const countryLocations: MobileSpeedCameraLocationInsert[] = this.paresElementsToLocations("COUNTRY", countryElements, scrapeRun.scrapeRunId);
 
     console.info('metro elements:', metroElements.length);
     console.info('metro locations:', metroLocations.length);
@@ -177,9 +177,9 @@ export class SapolScraperService {
    * @param scrapeRunId
    * @private
    */
-  private paresElementsToLocations(regionType: RegionType, elements: Cheerio<Element>, scrapeRunId: number): MobileSpeedCameraLocation[] {
+  private paresElementsToLocations(regionType: RegionType, elements: Cheerio<Element>, scrapeRunId: number): MobileSpeedCameraLocationInsert[] {
     // locations map to de-duplicate values (Duplicates can still exist in same SAPOL list)
-    const locationsMap: Map<string, MobileSpeedCameraLocation> = new Map();
+    const locationsMap: Map<string, MobileSpeedCameraLocationInsert> = new Map();
 
     elements.each((i, el) => {
       let startDate: string;
@@ -203,7 +203,7 @@ export class SapolScraperService {
         const [street = '', suburb = ''] = locationText.toUpperCase().split(',');
 
         // Zod.parse() to validate scraped value
-        const result: ZodSafeParseResult<MobileSpeedCameraLocation> = MobileSpeedCameraLocationSchema.safeParse({
+        const result: ZodSafeParseResult<MobileSpeedCameraLocationInsert> = MobileSpeedCameraLocationSchema.safeParse({
           startDate: startDate,
           endDate: endDate,
           location: locationText,

@@ -3,7 +3,7 @@ import {
   MobileCameraLocationResponseSchema
 } from "../schemas/api/mobile-speed-camera-location-response.schema.ts";
 import {
-  type MobileSpeedCameraLocation,
+  type MobileSpeedCameraLocation, type MobileSpeedCameraLocationInsert,
   MobileSpeedCameraLocationSchema
 } from "../schemas/domain/mobile-speed-camera-location.schema.ts";
 import {
@@ -31,7 +31,7 @@ export class DataMappingService {
       suburb_norm: value.suburbNormalised,
       region_type: value.regionType,
       created_at: value.createdAt,
-      edited_at: value.editedAt,
+      updated_at: value.updatedAt,
       is_active: value.isActive,
       scrape_run_id: value.scrapeRunId,
       meta: {
@@ -41,7 +41,7 @@ export class DataMappingService {
     });
   }
 
-  public static cameraLocationBeToDbInsert(value: MobileSpeedCameraLocation): MobileSpeedCameraLocationInsertDb {
+  public static cameraLocationBeToDbInsert(value: MobileSpeedCameraLocationInsert): MobileSpeedCameraLocationInsertDb {
     return MobileSpeedCameraLocationsInsertSchemaDb.parse({
       start_date: value.startDate,
       end_date: value.endDate,
@@ -69,7 +69,7 @@ export class DataMappingService {
       suburbNormalised: value.suburb_norm,
       regionType: value.region_type,
       createdAt: value.created_at,
-      editedAt: value.edited_at,
+      updatedAt: value.updated_at,
       isActive: value.is_active,
       scrapeRunId: value.scrape_run_id,
       meta: {
@@ -82,7 +82,7 @@ export class DataMappingService {
   public static cameraLocationBeToFe(value: MobileSpeedCameraLocation): MobileCameraLocationResponse {
     return MobileCameraLocationResponseSchema.parse({
       location: value.location,
-      lastUpdatedAt: value.editedAt || value.editedAt || ''
+      lastUpdatedAt: value.updatedAt || ''
     });
   }
 
@@ -93,7 +93,7 @@ export class DataMappingService {
       run_end: value.runEnd,
       run_result: value.runResult,
       created_at: value.createdAt,
-      edited_at: value.editedAt
+      updated_at: value.updatedAt
     });
   }
 
@@ -104,7 +104,7 @@ export class DataMappingService {
       runEnd: value.run_end || null,
       runResult: value.run_result,
       createdAt: value.created_at,
-      editedAt: value.edited_at || null
+      updatedAt: value.updated_at || null
       // TODO: enable offset fpr zod.iso.datetime() in service or fix on fix on DB side? e.g.
       // runStart: DateTime.fromISO(value.created_at).toUTC().toISO(),
     });

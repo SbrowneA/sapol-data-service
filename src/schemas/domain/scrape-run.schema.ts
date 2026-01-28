@@ -11,12 +11,12 @@ export const ScrapeRunSchema = z.object({
   runStart: IsoDateTimeWithOffset,
   runEnd: IsoDateTimeWithOffset.nullable(),
   createdAt: IsoDateTimeWithOffset,
-  editedAt: IsoDateTimeWithOffset.nullable(),
+  updatedAt: IsoDateTimeWithOffset.nullable(),
   runResult: ScrapeResultEnum
 });
 
 export type ScrapeRun = z.infer<typeof ScrapeRunSchema>;
 export const ScrapeRunInsertSchema
-  = ScrapeRunSchema.omit({ scrapeRunId: true, runEnd: true, createAt: true, editedAt: true });
+  = ScrapeRunSchema.omit({ scrapeRunId: true, runEnd: true, createAt: true, updatedAt: true });
 
 export type ScrapeRunInsert = z.infer<typeof ScrapeRunInsertSchema>;

@@ -15,7 +15,7 @@ export const MobileSpeedCameraLocationDbSchema = z.object({
   suburb_norm: z.string().min(3),
   region_type: RegionTypeEnum,
   created_at: z.iso.datetime(),
-  edited_at: z.iso.datetime().optional(),
+  updated_at: z.iso.datetime().optional(),
   is_active: z.boolean(),
   scrape_run_id: z.int(),
   meta: z.object({
@@ -27,7 +27,7 @@ export const MobileSpeedCameraLocationDbSchema = z.object({
 });
 
 export const MobileSpeedCameraLocationsInsertSchemaDb =
-  MobileSpeedCameraLocationDbSchema.omit({ id: true, created_at: true, edited_at: true});
+  MobileSpeedCameraLocationDbSchema.omit({ id: true, created_at: true, updated_at: true});
 
 
 export type MobileSpeedCameraLocationDb = z.infer<typeof MobileSpeedCameraLocationDbSchema>;

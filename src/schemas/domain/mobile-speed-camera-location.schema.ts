@@ -22,8 +22,8 @@ export const MobileSpeedCameraLocationSchema = z.object({
   regionType: RegionTypeEnum,
   // when the record was inserted to the DB
   createdAt: z.iso.datetime({offset: true}),
-  // if and when the record was last edited in the DB
-  editedAt: z.iso.datetime().optional(),
+  // if and when the record was last updated in the DB
+  updatedAt: z.iso.datetime().optional(),
   // Whether the record is currently shown on the SAPOL site (assume true until deleted)
   // - Soft delete in case of locations being removed during the current 7-day period that was saved
   isActive: z.boolean().default(true),
@@ -39,4 +39,7 @@ export const MobileSpeedCameraLocationSchema = z.object({
   message: 'startDate must domain <= endDate',
 });
 
+export const MobileSpeedCameraLocationInsertSchema = MobileSpeedCameraLocationSchema.omit({ createdAt: true, updatedAt: true });
+
 export type MobileSpeedCameraLocation = z.infer<typeof MobileSpeedCameraLocationSchema>;
+export type MobileSpeedCameraLocationInsert = z.infer<typeof MobileSpeedCameraLocationInsertSchema>;
