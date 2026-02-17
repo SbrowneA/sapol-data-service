@@ -1,9 +1,13 @@
 import {Router} from "express";
+
 import {SupabaseClient} from "@supabase/supabase-js";
 import {type PostgrestResponse} from "@supabase/postgrest-js";
+
 import {SupaDatabase} from "../db/sapol-db.service.ts";
 import {CameraLocationTableService} from "../db/table-services/camera-location-table.service.ts";
 import {type MobileSpeedCameraLocationDb} from "../schemas/db/mobile-speed-camera-location-db.schema.ts";
+import {DataNormalisationService} from "../db/data-normalisation/data-normalisation-service.ts";
+
 const normalisationRoutes = Router();
 const db: SupabaseClient | null = SupaDatabase.getInstance();
 const cameraLocationTableManager = new CameraLocationTableService(db);
@@ -41,5 +45,23 @@ normalisationRoutes.get('/normalise-all', async (req, res) => {
     updateStatus: updatedResult.status,
     error: updatedResult.error
   });
+});
+
+normalisationRoutes.get('/add-street-types', async (req, res) => {
+  try {
+    // load street types
+    const streetTypes: StreetTypeDbInsert[]  = await DataNormalisationService.getStreetTypesFromFile();
+    console.log(streetTypes.length, 'street-types: loaded');
+    // upsert street types
+    const result: PostgrestResponse<StreetTypeDb> = (await streetTypeTableService.updateStreetTypes(streetTypes)) || {} as PostgrestResponse<StreetTypeDb>;
+    if (result?.error) {
+      return res.status(500).json({error: result.error, attempted: streetTypes});
+    }
+    console.log(result.data.length, 'street-types: upserted');
+    res.json({ savedValues: result.data });
+  } catch(err) {
+    console.error(err);
+    res.status(500).json({ error: err });
+  }
 });
 
