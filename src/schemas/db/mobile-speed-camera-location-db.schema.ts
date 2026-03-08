@@ -14,8 +14,12 @@ export const MobileSpeedCameraLocationDbSchema = z.object({
   // With the street type (RD/ROAD)
   street_norm: z.string().min(3),
   suburb_norm: z.string().min(3),
-  // With the RD/ROAD
-  // street_canonical: z.string().min(3),
+  street_full_canon: z.string().min(2),
+  // Without street type
+  street_name_canon: z.string().min(2),
+  // the value of the mapped canonical key for the street type (e.g. Rd. -> ROAD)
+  street_type_canon: z.string().min(2),
+  direction_suffix_canon: z.string().min(4),
   region_type: RegionTypeEnum,
   created_at: z.iso.datetime(),
   updated_at: z.iso.datetime().optional(),
@@ -30,7 +34,15 @@ export const MobileSpeedCameraLocationDbSchema = z.object({
 });
 
 export const MobileSpeedCameraLocationsInsertSchemaDb =
-  MobileSpeedCameraLocationDbSchema.omit({ id: true, created_at: true, updated_at: true});
+  MobileSpeedCameraLocationDbSchema.omit({
+    id: true,
+    created_at: true,
+    updated_at: true,
+    street_full_canon: true,
+    street_name_canon: true,
+    street_type_canon: true,
+    direction_suffix_canon: true
+  });
 
 
 export type MobileSpeedCameraLocationDb = z.infer<typeof MobileSpeedCameraLocationDbSchema>;

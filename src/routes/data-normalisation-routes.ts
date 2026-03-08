@@ -7,10 +7,14 @@ import {SupaDatabase} from "../db/sapol-db.service.ts";
 import {CameraLocationTableService} from "../db/table-services/camera-location-table.service.ts";
 import {type MobileSpeedCameraLocationDb} from "../schemas/db/mobile-speed-camera-location-db.schema.ts";
 import {DataNormalisationService} from "../db/data-normalisation/data-normalisation-service.ts";
+import {CanonicalStreetTypeTableService} from "../db/table-services/canonical-street-type-table.service.ts";
+import type {StreetTypeDb, StreetTypeDbInsert} from "../schemas/db/street-type.schema.ts";
 
 const normalisationRoutes = Router();
 const db: SupabaseClient | null = SupaDatabase.getInstance();
 const cameraLocationTableManager = new CameraLocationTableService(db);
+const streetTypeTableService = new CanonicalStreetTypeTableService(db);
+
 /**
  * Endpoint to normalise all speed camera locations to have street_norm and suburb_norm
  */
@@ -50,7 +54,7 @@ normalisationRoutes.get('/normalise-all', async (req, res) => {
 normalisationRoutes.get('/add-street-types', async (req, res) => {
   try {
     // load street types
-    const streetTypes: StreetTypeDbInsert[]  = await DataNormalisationService.getStreetTypesFromFile();
+    const streetTypes: StreetTypeDbInsert[] = await DataNormalisationService.getStreetTypesFromFile();
     console.log(streetTypes.length, 'street-types: loaded');
     // upsert street types
     const result: PostgrestResponse<StreetTypeDb> = (await streetTypeTableService.updateStreetTypes(streetTypes)) || {} as PostgrestResponse<StreetTypeDb>;
@@ -65,3 +69,5 @@ normalisationRoutes.get('/add-street-types', async (req, res) => {
   }
 });
 
+
+export default normalisationRoutes;

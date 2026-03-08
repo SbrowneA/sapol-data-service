@@ -3,7 +3,7 @@ import {SupabaseClient} from "@supabase/supabase-js";
 import type {SupabaseQuery} from "../sapol-db.service.ts";
 import type {StreetTypeDb, StreetTypeDbInsert} from "../../schemas/db/street-type.schema.ts";
 
-export class StreetTypeTableService {
+export class CanonicalStreetTypeTableService {
   tableName: string = 'canonical_street_type';
   private db: SupabaseClient;
 
