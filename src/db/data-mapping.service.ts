@@ -1,7 +1,7 @@
 import {
   type MobileCameraLocationResponse,
-  MobileCameraLocationResponseSchema
-} from "../schemas/api/mobile-speed-camera-location-response.schema.ts";
+  CameraLocationApiSchema
+} from "../schemas/api/mobile-speed-camera-locations-api.schema.ts";
 import {
   type MobileSpeedCameraLocation, type MobileSpeedCameraLocationInsert,
   MobileSpeedCameraLocationSchema
@@ -80,7 +80,7 @@ export class DataMappingService {
   }
 
   public static cameraLocationBeToFe(value: MobileSpeedCameraLocation): MobileCameraLocationResponse {
-    return MobileCameraLocationResponseSchema.parse({
+    return CameraLocationApiSchema.parse({
       location: value.location,
       lastUpdatedAt: value.updatedAt || ''
     });
