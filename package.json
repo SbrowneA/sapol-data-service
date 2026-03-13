@@ -30,6 +30,7 @@
     "helmet": "^8.1.0",
     "luxon": "^3.7.2",
     "morgan": "^1.10.1",
+    "pg": "^8.20.0",
     "playwright": "^1.57.0",
     "zod": "^4.1.13"
   },
@@ -39,6 +40,7 @@
     "@types/luxon": "^3.7.1",
     "@types/morgan": "^1.9.10",
     "@types/node": "^24.10.1",
+    "@types/pg": "^8.18.0",
     "typescript": "^5.9.3"
   }
 }
