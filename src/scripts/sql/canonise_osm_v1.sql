@@ -630,15 +630,16 @@ COMMIT;
 
 
 /*
-CREATE streets_by_suburb
+CREATE streets_by_suburb_temp
 */
 BEGIN;
-DROP TABLE IF EXISTS streets_by_suburb;
-CREATE TABLE streets_by_suburb AS
-SELECT s.street_full_canon,
-       sub.name_norm,
+DROP TABLE IF EXISTS streets_by_suburb_temp;
+CREATE TABLE streets_by_suburb_temp AS
+SELECT s.street_full_canon as street_canon,
+       sub.name_norm as suburb_name,
        sub.osm_id          AS suburb_osm_id,
        array_agg(s.osm_id) AS street_osm_ids,
+       -- Street geometries merged -> IF they are within the suburb AND have the same street_full_canon
        ST_LineMerge(
                ST_UnaryUnion(
                        ST_Collect(
@@ -650,6 +651,7 @@ SELECT s.street_full_canon,
                        )
                )
        )                   AS street_geom
+-- Find streets that intersect with a suburb
 FROM streets_canon s
          JOIN suburbs sub
               ON s.geom && sub.geom
@@ -658,11 +660,13 @@ GROUP BY s.street_full_canon,
          sub.name_norm,
          sub.osm_id;
 
+ALTER TABLE streets_by_suburb_temp
+    ADD CONSTRAINT uq_street_suburb_temp UNIQUE (street_canon, suburb_osm_id);
 
 -- INDEX USED for location resolution pipeline
-DROP INDEX IF EXISTS streets_by_suburb_lookup;
-CREATE INDEX streets_by_suburb_lookup
-    ON streets_by_suburb (street_full_canon, name_norm);
+DROP INDEX IF EXISTS streets_by_suburb_temp_lookup;
+CREATE INDEX streets_by_suburb_temp_lookup
+    ON streets_by_suburb_temp (street_canon, suburb_name);
 COMMIT;
 
 -- SELECT pg_size_pretty(pg_database_size(current_database()));

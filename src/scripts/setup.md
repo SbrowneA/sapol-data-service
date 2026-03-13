@@ -1,7 +1,7 @@
 # OSM Data Extraction & Setup For Camera Location Resolutions
 
 This is a guide to manually get extract OSM data and import it into the application database.
-Final result should be an increase of ~83MB.
+Final result should be an increase of ~48MB (~100MB head-room required to restore).
 
 *To be automated into a pipeline and containerised*
 
@@ -69,7 +69,7 @@ osmfilter sa.05m --keep="highway= or boundary=administrative or place=suburb" -o
 ## 3.1 Create DB With Required Extensions
 
 ```shell
-psql -h localhost -U postgres -f "<CREATE_DB_SQL_SCRIPT_PATH>"
+psql -h localhost -U postgres -f <CREATE_DB_SQL_SCRIPT_PATH>
 ```
 
 * `CREATE_DB_SQL_SCRIPT_PATH` - as the path to `create_osm_db.sql`
@@ -99,7 +99,7 @@ The `canonise_supabase` script will:
 * Create table for camera location queries (street + suburb) `streets_by_suburb`
 
 ```shell
-psql -h localhost -d <DATABASE_NAME> -U postgres -v ON_ERROR_STOP=1 -f "<CANONISE_OSM_SCRIPT_PATH>"
+psql -h localhost -d <DATABASE_NAME> -U postgres -v ON_ERROR_STOP=1 -f <CANONISE_OSM_SCRIPT_PATH>
 ```
 
 * `CANONISE_OSM_SCRIPT_PATH` - as the path to `canonise_osm_v1.sql`
@@ -112,20 +112,35 @@ psql -h localhost -d <DATABASE_NAME> -U postgres -v ON_ERROR_STOP=1 -f "<CANONIS
 ## 5.1 Dump
 
 ```shell
-pg_dump -Fc -t streets_canon -t suburbs osm2 > canonised_streets_suburbs -U postgres -h <HOST>
+pg_dump -Fc -t streets_by_suburb_temp osm2 > canonised_streets_suburbs.dump -U postgres -h <HOST>
 ```
 
 ## 5.2 Restore
 
-First ensure the required extensions are installed in the `target_database` by running the follwiing `psql`
+First ensure the required extensions are installed in the `TARGET_DATABASE` by running the follwiing `psql`:
 
 ```sql
 CREATE EXTENSION IF NOT EXISTS hstore;
 CREATE EXTENSION IF NOT EXISTS postgis;
 ```
 
-Restore the dump file to the `target_database`.
+Restore the dump file to the `TARGET_DATABASE`.
 
 ```shell
-pg_restore --no-owner -U postgres -h <HOST> -d target_database <DUMP_FILE>
+pg_restore --no-owner -U postgres -h <HOST> -d <TARGET_DATABASE> <DUMP_FILE>
 ```
+
+Then run:
+
+```shell
+psql -h localhost -d <TARGET_DATABASE> -U postgres -v ON_ERROR_STOP=1 -f <PATH_TO_UPSERT_SCRIPT>
+```
+
+* `PATH_TO_UPSERT` - path to `upsert_street_by_suburb.sql`
+ 
+The `upsert_street_by_suburb.sql` script will:
+
+* Crate `street_by_suburb` table (if does not exist)
+* Upsert values in `street_by_suburb` from `street_by_suburb_temp`
+    * Using unique constraint `street_canon` + `suburb_osm_id`.
+* Drop `street_by_suburb_temp` table from `pg_restore` step
