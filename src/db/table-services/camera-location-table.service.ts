@@ -6,14 +6,15 @@ import type {
   MobileSpeedCameraLocationInsertDb
 } from "../../schemas/db/mobile-speed-camera-location-db.schema.ts";
 import {type SupabaseQuery} from "../sapol-db.service.ts";
+import {GenericTableService} from "./generic-table.service.ts";
 
-// FIXME: Refactor to extend generic class for consistency
-export class CameraLocationTableService {
-  tableName: string = 'mobile_speed_camera_location';
-  private db: SupabaseClient | null;
 
-  constructor(db: SupabaseClient | null) {
-    this.db = db;
+export class CameraLocationTableService extends GenericTableService<MobileSpeedCameraLocationDb, MobileSpeedCameraLocationInsertDb> {
+    constructor(db: SupabaseClient | null) {
+    super(
+      'mobile_speed_camera_location',
+      'id',
+      db);
   }
 
   getBusinessKeyDb(location: MobileSpeedCameraLocationDb | MobileSpeedCameraLocationInsertDb): string {
@@ -21,7 +22,7 @@ export class CameraLocationTableService {
   }
 
   /**
-   * TODO create db index for constraint
+   * TODO create db index/unique constraint
    * Used to for reconciling camera location records with scraped camera locations for the same date range
    * @param regionType
    * @param startDate
@@ -36,21 +37,5 @@ export class CameraLocationTableService {
         .eq('end_date', endDate)
     }
     return Promise.resolve(null);
-  }
-
-  getAllLocations(): SupabaseQuery<MobileSpeedCameraLocationDb> {
-    if (this.db) {
-      return this.db.from(this.tableName).select();
-    }
-    return Promise.resolve(null);
-  }
-
-  insertLocations(locations: MobileSpeedCameraLocationInsertDb[]): SupabaseQuery<MobileSpeedCameraLocationDb> {
-    return (this.db?.from(this.tableName)?.insert(locations).select() || Promise.resolve(null));
-  }
-
-  // using upsert to bulk update rows
-  updateLocations(locations: MobileSpeedCameraLocationDb[]): SupabaseQuery<MobileSpeedCameraLocationDb> {
-    return (this.db?.from(this.tableName)?.upsert(locations).select() || Promise.resolve(null));
   }
 }

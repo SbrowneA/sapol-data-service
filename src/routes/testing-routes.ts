@@ -42,7 +42,7 @@ testingRoutes.get("/save", async (req, res) => {
 });
 
 testingRoutes.get('/locations', async (req, res) => {
-  const queryResult = (await cameraLocationTableManager.getAllLocations()) || {} as (PostgrestResponse<MobileSpeedCameraLocationDb[]>);
+  const queryResult = (await cameraLocationTableManager.getAll()) || {} as (PostgrestResponse<MobileSpeedCameraLocationDb[]>);
   res.json({
     message: 'all locations',
     queryResult: {
