@@ -18,6 +18,7 @@ import { type ScrapeRun } from "../schemas/domain/scrape-run.schema.ts";
 import { type RegionType, regionTypeValues} from "../schemas/domain/region-type.enum.ts";
 import { type ScrapeRunInsertDb} from "../schemas/db/scrape-run-db.schema.ts";
 import {DebugService} from "../debug/debug.service.ts";
+import { type LocationResolutionRunInsertDb } from "../schemas/db/location-resolution-run-db.schema.ts";
 
 export class SapolScraperService {
   /**
@@ -240,7 +241,7 @@ export class SapolScraperService {
 
 export class SapolDataService {
   // TODO find a home
-  static generateScrapeRun(): ScrapeRunInsertDb {
+  static generateGenericRun(): ScrapeRunInsertDb | LocationResolutionRunInsertDb {
     return {
       run_start: DateTime.utc().toISO(),
       run_result: 'PENDING'

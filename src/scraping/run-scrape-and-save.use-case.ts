@@ -87,7 +87,7 @@ export class RunScrapeAndSaveResultsUseCase {
 
   async initialiseScrapeRun(): Promise<ScrapeRun> {
     const result
-      = await this.scrapeRunTableManager.insertScrapeRun(SapolDataService.generateScrapeRun());
+      = await this.scrapeRunTableManager.insertScrapeRun(SapolDataService.generateGenericRun());
 
     if (result?.error) {
       console.error('ERROR: Failed initialising scrape run');
