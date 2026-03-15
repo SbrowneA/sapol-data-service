@@ -10,10 +10,10 @@ viewsRoutes.get('/',
     directives: {
       defaultSrc: ["'self'"],
       scriptSrc: ["'self'"],
+      styleSrc: ["'self'"],
       workerSrc: ["'self'", "blob:"], // allow MapLibre Web Workers
-      styleSrc: ["'self'", "'unsafe-inline'"], // allow MapLibre CSS
-      'connect-src': ["'self'", "https://demotiles.maplibre.org"],
-      imgSrc: ["'self'", "data:"],
+      connectSrc: ["'self'", "https://api.maptiler.com"],
+      imgSrc: ["'self'", "data:", "https://api.maptiler.com"],
       fontSrc: ["'self'", "data:"],
       objectSrc: ["'none'"]
     }
