@@ -10,7 +10,7 @@ import {GenericTableService} from "./generic-table.service.ts";
 
 
 export class CameraLocationTableService extends GenericTableService<MobileSpeedCameraLocationDb, MobileSpeedCameraLocationInsertDb> {
-    constructor(db: SupabaseClient | null) {
+  constructor(db: SupabaseClient | null) {
     super(
       'mobile_speed_camera_location',
       'id',
@@ -35,6 +35,38 @@ export class CameraLocationTableService extends GenericTableService<MobileSpeedC
         .eq('region_type', regionType)
         .eq('start_date', startDate)
         .eq('end_date', endDate)
+    }
+    return Promise.resolve(null);
+  }
+
+  /**
+   * Retrieves the locations that don't have a defined street_full_canon
+   */
+  getLocationsToCanonise(): SupabaseQuery<MobileSpeedCameraLocationDb> {
+    if (this.db) {
+      return this.db.from(this.tableName).select().is('street_full_canon', null);
+    }
+    return Promise.resolve(null);
+  }
+
+  /**
+   * Retrieves the locations that don't have matching location_by_suburb
+   */
+  getLocationsToResolve(limit?: number, region?:RegionType): SupabaseQuery<MobileSpeedCameraLocationDb> {
+    if (this.db) {
+      // TODO once function and tables are added
+      //    - get camera_locations that don't have a  (left join where resolved_location_id=null)
+      // this.db.rpc('get_streets_to_resolve', {
+      //   street_suburb_list: JSON.stringify(locations),
+      // });
+      const query = this.db.from(this.tableName).select().neq('street_full_canon', null);
+      if (region) {
+        query.eq('region_type', region)
+      }
+      if (limit) {
+        query.limit(limit);
+      }
+      return query;
     }
     return Promise.resolve(null);
   }

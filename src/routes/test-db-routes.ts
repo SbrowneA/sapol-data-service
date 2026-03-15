@@ -34,7 +34,8 @@ testDbRoutes.get('/locations-to-canonise', async (req, res) => {
 });
 
 testDbRoutes.get('/resolved-location-by-suburb', async (req, res) => {
-  const result = await cameraLocationTableManager.getLocationsToResolve();
+  // const result = await cameraLocationTableManager.getLocationsToResolve(50, "COUNTRY");
+  const result = await cameraLocationTableManager.getLocationsToResolve(50, "METRO");
 
   if (result?.error) {
     res.json({error: result.error}).status(500);
@@ -88,7 +89,7 @@ testDbRoutes.get('/resolved-location-by-suburb', async (req, res) => {
       SELECT s.streets_by_suburb_id,
              s.street_canon,
              s.suburb_name,
-             ST_AsGeoJSON(s.street_geom) AS street_geom
+             ST_AsGeoJSON(ST_Transform(s.street_geom, 4326)) AS street_geom
       FROM streets_by_suburb s
                JOIN (
           VALUES ${values}
