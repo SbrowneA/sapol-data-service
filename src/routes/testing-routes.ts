@@ -32,7 +32,7 @@ testingRoutes.get('/scrape-runs', async (req, res) => {
   res.json({ message: `GET SCRAPE RUNS`, scrapeRunsDb: results?.data, parsed });
 });
 
-testingRoutes.get("/save", async (req, res) => {
+testingRoutes.post('/scrape-and-save', async (req, res) => {
   await scrapingController.scrapeAndSaveResults(res);
 });
 
