@@ -1,11 +1,11 @@
-import type {SupabaseClient} from "@supabase/supabase-js";
+import type { SupabaseClient } from '@supabase/supabase-js';
 
-import {type RegionType} from "../../schemas/domain/region-type.enum.ts";
+import { type RegionType } from '../../schemas/domain/region-type.enum.ts';
 import type {
   MobileSpeedCameraLocationDb,
-  MobileSpeedCameraLocationInsertDb
-} from "../../schemas/db/mobile-speed-camera-location-db.schema.ts";
-import {type SupabaseQuery} from "../sapol-db.service.ts";
+  MobileSpeedCameraLocationInsertDb,
+} from '../../schemas/db/mobile-speed-camera-location-db.schema.ts';
+import { type SupabaseQuery } from '../sapol-db.service.ts';
 
 // FIXME: Refactor to extend generic class for consistency
 export class CameraLocationTableService {
@@ -27,13 +27,14 @@ export class CameraLocationTableService {
    * @param startDate
    * @param endDate
    */
-  getLocationsForDateRageByRegion(regionType: RegionType, startDate: string, endDate: string): SupabaseQuery<MobileSpeedCameraLocationDb> {
+  getLocationsForDateRageByRegion(
+    regionType: RegionType, startDate: string, endDate: string): SupabaseQuery<MobileSpeedCameraLocationDb> {
     if (this.db) {
       return this.db.from(this.tableName)
         .select()
         .eq('region_type', regionType)
         .eq('start_date', startDate)
-        .eq('end_date', endDate)
+        .eq('end_date', endDate);
     }
     return Promise.resolve(null);
   }

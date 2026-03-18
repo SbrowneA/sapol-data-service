@@ -11,7 +11,7 @@ export const MobileCameraLocationResponseSchema = z.object({
   // ISO string
   lastUpdatedAt: z.iso.datetime(),
   // TODO geolocation details
-})
+});
 
 export const CameraLocationsByDayResponseSchema = z.object({
   date: z.iso.date(),
@@ -28,9 +28,9 @@ export const MobileSpeedCameraLocationResponseSchema = z.object({
   startDate: z.iso.date(),
   endDate: z.iso.date(),
   days: z.array(CameraLocationsByDayResponseSchema)
-}).refine(d => d.startDate <= d.endDate, {
+}).refine((d) => d.startDate <= d.endDate, {
   message: 'startDate must be <= endDate',
-}).refine(d => d.days.length > 0, {
+}).refine((d) => d.days.length > 0, {
   message: 'days must not be empty',
 });
 

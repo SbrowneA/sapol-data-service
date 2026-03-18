@@ -1,18 +1,19 @@
-import {SupabaseClient} from "@supabase/supabase-js";
-import {type PostgrestResponse} from "@supabase/postgrest-js";
-import {DateTime} from "luxon";
+import { SupabaseClient } from '@supabase/supabase-js';
+import { type PostgrestResponse } from '@supabase/postgrest-js';
+import { DateTime } from 'luxon';
 
-import {SapolDataService, SapolScraperService} from "./sapol-scraper.service.ts";
-import {ScrapeRunTableService} from "../db/table-services/scrape-run-table.service.ts";
-import {CameraLocationTableService} from "../db/table-services/camera-location-table.service.ts";
-import {MobileSpeedCameraLocationReconciliationService, type ReconciliationMap} from "../db/data-reconciliation.service.ts";
-import {type ScrapeRun} from "../schemas/domain/scrape-run.schema.ts";
-import {type ScrapeRunDb} from "../schemas/db/scrape-run-db.schema.ts";
-import {DataMappingService} from "../db/data-mapping.service.ts";
+import { SapolDataService, SapolScraperService } from './sapol-scraper.service.ts';
+import { ScrapeRunTableService } from '../db/table-services/scrape-run-table.service.ts';
+import { CameraLocationTableService } from '../db/table-services/camera-location-table.service.ts';
+import { MobileSpeedCameraLocationReconciliationService, type ReconciliationMap } from '../db/data-reconciliation.service.ts';
+import { type ScrapeRun } from '../schemas/domain/scrape-run.schema.ts';
+import { type ScrapeRunDb } from '../schemas/db/scrape-run-db.schema.ts';
+import { DataMappingService } from '../db/data-mapping.service.ts';
+import { type ScrapeRunResultsToSave } from './run-scrape-and-save.types.ts';
 import type {
   MobileSpeedCameraLocationDb,
-  MobileSpeedCameraLocationInsertDb
-} from "../schemas/db/mobile-speed-camera-location-db.schema.ts";
+  MobileSpeedCameraLocationInsertDb,
+} from '../schemas/db/mobile-speed-camera-location-db.schema.ts';
 
 export class RunScrapeAndSaveResultsUseCase {
   db: SupabaseClient;
@@ -41,7 +42,7 @@ export class RunScrapeAndSaveResultsUseCase {
    * 5.3 Insert - new records that did not exist
    * 6. Finalise scrapeRun
    */
-  public async execute(): Promise<any> {
+  public async execute(): Promise<ScrapeRunResultsToSave> {
     // 1. initialise scrape run
     const scrapeRun = await this.initialiseScrapeRun();
     console.log('scrape run created & parsed: ', scrapeRun);
@@ -50,14 +51,15 @@ export class RunScrapeAndSaveResultsUseCase {
     const scrapeData = await this.sapolScraperService.scrapeLocations(scrapeRun);
 
     // 2.2 parse to db datatype
-    const locationsToDbInsert: MobileSpeedCameraLocationInsertDb[] = scrapeData.locations.map(DataMappingService.cameraLocationBeToDbInsert);
+    const locationsToDbInsert: MobileSpeedCameraLocationInsertDb[] =
+      scrapeData.locations.map(DataMappingService.cameraLocationBeToDbInsert);
 
     // 3.1 group scraped locations into a queryable reconciliationMap
     const reconciliationMap = MobileSpeedCameraLocationReconciliationService.generateReconciliationMap(locationsToDbInsert);
 
     reconciliationMap.forEach((val, key) => {
       console.log(`${key} \t scrapedLocations: ${val.scrapedLocations.length}`);
-    })
+    });
 
     // 3.2 query regionType + startDate + endDate
     MobileSpeedCameraLocationReconciliationService.generateDateRangeQueries(reconciliationMap, this.cameraLocationTableManager);
@@ -66,7 +68,7 @@ export class RunScrapeAndSaveResultsUseCase {
 
     // 4. Prepare for reconciliation (compare with existing records)
     // 4.1 Find records toInsert, toUpdate, and toDeactivate
-    const {toInsert, toUpdate, toDeactivate} = this.compareScrapedWithExistingRecords(reconciliationMap, scrapeData);
+    const { toInsert, toUpdate, toDeactivate } = this.compareScrapedWithExistingRecords(reconciliationMap);
     const scrapeRunId = scrapeData.scrapeRun.scrapeRunId;
 
     // 5. Execute reconciliation (Updates & Insertions)
@@ -86,32 +88,31 @@ export class RunScrapeAndSaveResultsUseCase {
   }
 
   async initialiseScrapeRun(): Promise<ScrapeRun> {
-    const result
-      = await this.scrapeRunTableManager.insertScrapeRun(SapolDataService.generateScrapeRun());
+    const result =
+      await this.scrapeRunTableManager.insertScrapeRun(SapolDataService.generateScrapeRun());
 
     if (result?.error) {
       console.error('ERROR: Failed initialising scrape run');
       console.error(result.error);
-      throw result.error
+      throw result.error;
     } else if (!result?.data) {
       console.error('Something went wrong initiating scrape run');
       throw new Error('Something went wrong initiating scrape run');
     }
 
-    const scrapeRunDb: ScrapeRunDb = result?.data[0] as ScrapeRunDb;;
+    const scrapeRunDb: ScrapeRunDb = result?.data[0] as ScrapeRunDb;
     return DataMappingService.scrapeRunDbToBe(scrapeRunDb);
   }
 
   async runReconciliationCheckQueries(reconciliationMap: ReconciliationMap): Promise<void> {
     for (const [key, val] of reconciliationMap) {
       let queryResult: PostgrestResponse<MobileSpeedCameraLocationDb> | null = null;
-      if (!!val.query) {
+      if (val.query) {
         queryResult = await val.query;
-        if (queryResult?.error){
+        if (queryResult?.error) {
           console.error('Query Check failed gracefully:');
           console.error(queryResult?.error);
-        }
-        else {
+        } else {
           console.log(`${key}\t${queryResult?.status}\tExisting locations, ${queryResult?.data?.length || 0}`);
         }
       }
@@ -119,7 +120,7 @@ export class RunScrapeAndSaveResultsUseCase {
     }
   }
 
-  compareScrapedWithExistingRecords(reconciliationMap: ReconciliationMap, scrapeData: any): {
+  compareScrapedWithExistingRecords(reconciliationMap: ReconciliationMap): {
     toInsert: MobileSpeedCameraLocationInsertDb[],
     toUpdate: MobileSpeedCameraLocationDb[],
     toDeactivate: MobileSpeedCameraLocationDb[]
@@ -128,7 +129,7 @@ export class RunScrapeAndSaveResultsUseCase {
     const toUpdate: MobileSpeedCameraLocationDb[] = [];
     const toDeactivate: MobileSpeedCameraLocationDb[] = [];
 
-    reconciliationMap.forEach((val, key) => {
+    reconciliationMap.forEach((val) => {
       //  find records to be deactivated
       val.existingLocations.forEach((loc: MobileSpeedCameraLocationDb) => {
         const key = this.cameraLocationTableManager.getBusinessKeyDb(loc);
@@ -152,11 +153,11 @@ export class RunScrapeAndSaveResultsUseCase {
         }
       });
     });
-    return { toInsert, toUpdate, toDeactivate}
+    return { toInsert, toUpdate, toDeactivate };
   }
 
   async deactivateDeletedLocations(scrapeRunId: number, toDeactivate: MobileSpeedCameraLocationDb[]) {
-    const deactivated = toDeactivate.map(location => {
+    const deactivated = toDeactivate.map((location) => {
       return {
         ...location,
         is_active: false,
@@ -200,7 +201,7 @@ export class RunScrapeAndSaveResultsUseCase {
       console.log(`${toUpdate.length} locations updated, Result: ${result?.status}, ${result?.statusText}`);
       if (result?.error) {
         console.error(result.error);
-        throw result.error
+        throw result.error;
       }
     } else {
       console.log(`No existing locations to update`);

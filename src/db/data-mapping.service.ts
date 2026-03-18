@@ -1,17 +1,17 @@
 import {
   type MobileCameraLocationResponse,
-  MobileCameraLocationResponseSchema
-} from "../schemas/api/mobile-speed-camera-location-response.schema.ts";
+  MobileCameraLocationResponseSchema,
+} from '../schemas/api/mobile-speed-camera-location-response.schema.ts';
 import {
   type MobileSpeedCameraLocation, type MobileSpeedCameraLocationInsert,
-  MobileSpeedCameraLocationSchema
-} from "../schemas/domain/mobile-speed-camera-location.schema.ts";
+  MobileSpeedCameraLocationSchema,
+} from '../schemas/domain/mobile-speed-camera-location.schema.ts';
 import {
   type MobileSpeedCameraLocationDb, type MobileSpeedCameraLocationInsertDb, MobileSpeedCameraLocationsInsertSchemaDb,
-  MobileSpeedCameraLocationDbSchema
-} from "../schemas/db/mobile-speed-camera-location-db.schema.ts";
-import {type ScrapeRun, type ScrapeRunInsert, ScrapeRunSchema} from "../schemas/domain/scrape-run.schema.ts";
-import {type ScrapeRunDb, type ScrapeRunInsertDb, ScrapeRunDbSchema} from "../schemas/db/scrape-run-db.schema.ts";
+  MobileSpeedCameraLocationDbSchema,
+} from '../schemas/db/mobile-speed-camera-location-db.schema.ts';
+import { type ScrapeRun, type ScrapeRunInsert, ScrapeRunSchema } from '../schemas/domain/scrape-run.schema.ts';
+import { type ScrapeRunDb, type ScrapeRunInsertDb, ScrapeRunDbSchema } from '../schemas/db/scrape-run-db.schema.ts';
 
 /**
  * Uses zod schemas to parse data between layers:
@@ -36,7 +36,7 @@ export class DataMappingService {
       scrape_run_id: value.scrapeRunId,
       meta: {
         css_class: value.meta?.cssClass,
-        all_scrape_run_ids: value.meta.allScrapeRuns?.length ? value.meta.allScrapeRuns : [value.scrapeRunId]
+        all_scrape_run_ids: value.meta.allScrapeRuns?.length ? value.meta.allScrapeRuns : [value.scrapeRunId],
       }
     });
   }
@@ -53,7 +53,7 @@ export class DataMappingService {
       scrape_run_id: value.scrapeRunId,
       meta: {
         css_class: value.meta?.cssClass,
-        all_scrape_run_ids: value.meta.allScrapeRuns?.length ? value.meta.allScrapeRuns : [value.scrapeRunId]
+        all_scrape_run_ids: value.meta.allScrapeRuns?.length ? value.meta.allScrapeRuns : [value.scrapeRunId],
       }
     });
   }
