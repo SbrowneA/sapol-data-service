@@ -35,6 +35,18 @@ CREATE INDEX ON streets_by_suburb (suburb_osm_id, street_canon);
 -- CREATE INDEX IF NOT EXISTS street_by_suburb_lookup ON streets_by_suburb (street_canon, suburb_name);
 
 -- DO upsert
+INSERT INTO suburbs (suburb_osm_id,
+                     suburb_name,
+                     suburb_geom)
+SELECT suburb_osm_id,
+       suburb_name,
+       suburb_geom
+FROM suburbs_temp
+ON CONFLICT (suburb_osm_id)
+    DO UPDATE SET suburb_name = EXCLUDED.suburb_name,
+                  suburb_geom = EXCLUDED.suburb_geom;
+
+
 INSERT INTO streets_by_suburb (street_canon,
                                suburb_osm_id,
                                street_osm_ids,
@@ -47,18 +59,6 @@ FROM streets_by_suburb_temp
 ON CONFLICT (street_canon, suburb_osm_id)
     DO UPDATE SET street_osm_ids = EXCLUDED.street_osm_ids,
                   street_geom    = EXCLUDED.street_geom;
-
-
-INSERT INTO suburbs (suburb_osm_id,
-                     suburb_name,
-                     suburb_geom)
-SELECT suburb_osm_id,
-       suburb_name,
-       suburb_geom
-FROM suburbs_temp
-ON CONFLICT (suburb_osm_id)
-    DO UPDATE SET suburb_name = EXCLUDED.suburb_name,
-                  suburb_geom = EXCLUDED.suburb_geom;
 
 -- Now drop table that is no longer needed
 DROP TABLE IF EXISTS streets_by_suburb_temp;
