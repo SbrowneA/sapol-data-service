@@ -20,7 +20,7 @@ const streetTypeTableService = new CanonicalStreetTypeTableService(db);
  */
 normalisationRoutes.get('/normalise-all', async (req, res) => {
   const result =
-    (await cameraLocationTableManager.getAllLocations()) || {} as PostgrestResponse<MobileSpeedCameraLocationDb[]>;
+    (await cameraLocationTableManager.getAll()) || {} as PostgrestResponse<MobileSpeedCameraLocationDb[]>;
 
   if (result?.error) {
     res.status(500).json({ error: result.error });
@@ -41,7 +41,7 @@ normalisationRoutes.get('/normalise-all', async (req, res) => {
     });
 
   const updatedResult =
-    await cameraLocationTableManager.updateLocations(toUpdate) || {} as PostgrestResponse<MobileSpeedCameraLocationDb[]>;
+    await cameraLocationTableManager.upsertRows(toUpdate) || {} as PostgrestResponse<MobileSpeedCameraLocationDb[]>;
 
   res.json({
     data: result?.data || [],

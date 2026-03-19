@@ -1,7 +1,7 @@
 import {
   type MobileCameraLocationResponse,
-  MobileCameraLocationResponseSchema,
-} from '../schemas/api/mobile-speed-camera-location-response.schema.ts';
+  CameraLocationApiSchema
+} from '../schemas/api/mobile-speed-camera-locations-api.schema.ts';
 import {
   type MobileSpeedCameraLocation, type MobileSpeedCameraLocationInsert,
   MobileSpeedCameraLocationSchema,
@@ -36,7 +36,7 @@ export class DataMappingService {
       scrape_run_id: value.scrapeRunId,
       meta: {
         css_class: value.meta?.cssClass,
-        all_scrape_run_ids: value.meta.allScrapeRuns?.length ? value.meta.allScrapeRuns : [value.scrapeRunId],
+        all_scrape_run_ids: value.meta.allScrapeRuns?.length ? value.meta.allScrapeRuns : [value.scrapeRunId]
       }
     });
   }
@@ -53,7 +53,7 @@ export class DataMappingService {
       scrape_run_id: value.scrapeRunId,
       meta: {
         css_class: value.meta?.cssClass,
-        all_scrape_run_ids: value.meta.allScrapeRuns?.length ? value.meta.allScrapeRuns : [value.scrapeRunId],
+        all_scrape_run_ids: value.meta.allScrapeRuns?.length ? value.meta.allScrapeRuns : [value.scrapeRunId]
       }
     });
   }
@@ -80,7 +80,7 @@ export class DataMappingService {
   }
 
   public static cameraLocationBeToFe(value: MobileSpeedCameraLocation): MobileCameraLocationResponse {
-    return MobileCameraLocationResponseSchema.parse({
+    return CameraLocationApiSchema.parse({
       location: value.location,
       lastUpdatedAt: value.updatedAt || ''
     });

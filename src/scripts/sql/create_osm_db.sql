@@ -1,7 +1,14 @@
--- WARNING BEFORE EXECUTING SCRIPT
-\prompt 'Warning: If any database is named "osm" it will DROPPED and recreated. Type YES to continue: ' confirm
+\if :{?db_name}
+\else
+\echo 'Missing required variable: db_name'
+\quit 1
+\endif
 
-SELECT :'confirm' = 'YES' AS ok \gset
+-- WARNING BEFORE EXECUTING SCRIPT
+\echo 'Warning: Any database named "' :db_name '" will DROPPED and recreated.'
+\prompt 'Type YES to continue: ' confirm
+
+SELECT UPPER(:'confirm') = 'YES' AS ok \gset
 
 \if :ok
     \echo 'Continuing...'
@@ -11,14 +18,14 @@ SELECT :'confirm' = 'YES' AS ok \gset
 \endif
 
 -- CREATE DATABASE
-DROP DATABASE IF EXISTS osm;
-CREATE DATABASE osm;
+SELECT format('DROP DATABASE IF EXISTS %I', :'db_name') AS sql \gexec
+SELECT format('CREATE DATABASE %I', :'db_name') AS sql \gexec
 
 -- connect to created DB
-\c osm
+\c :db_name
 
 -- Install required extensions
 CREATE EXTENSION IF NOT EXISTS hstore;
 CREATE EXTENSION IF NOT EXISTS postgis;
 
-\echo 'osm table created'
+\echo 'database "' :db_name '" created successfully'

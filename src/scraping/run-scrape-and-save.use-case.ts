@@ -89,7 +89,7 @@ export class RunScrapeAndSaveResultsUseCase {
 
   async initialiseScrapeRun(): Promise<ScrapeRun> {
     const result =
-      await this.scrapeRunTableManager.insertScrapeRun(SapolDataService.generateScrapeRun());
+      await this.scrapeRunTableManager.insertScrapeRun(SapolDataService.generateGenericRun());
 
     if (result?.error) {
       console.error('ERROR: Failed initialising scrape run');
@@ -171,7 +171,7 @@ export class RunScrapeAndSaveResultsUseCase {
 
     console.log(`Deactivating...`);
     if (deactivated.length) {
-      const result = await this.cameraLocationTableManager.updateLocations(deactivated);
+      const result = await this.cameraLocationTableManager.upsertRows(deactivated);
       console.log(`${toDeactivate.length} locations deactivated, Result: ${result?.status}, ${result?.statusText}`);
       if (result?.error) {
         console.error(result.error);
@@ -197,7 +197,7 @@ export class RunScrapeAndSaveResultsUseCase {
 
     console.log(`Updating...`);
     if (toUpdate.length) {
-      const result = await this.cameraLocationTableManager.updateLocations(newValues);
+      const result = await this.cameraLocationTableManager.upsertRows(newValues);
       console.log(`${toUpdate.length} locations updated, Result: ${result?.status}, ${result?.statusText}`);
       if (result?.error) {
         console.error(result.error);
@@ -212,7 +212,7 @@ export class RunScrapeAndSaveResultsUseCase {
     try {
       console.log(`Inserting...`);
       if (toInsert.length) {
-        const result = await this.cameraLocationTableManager.insertLocations(toInsert);
+        const result = await this.cameraLocationTableManager.insertRows(toInsert);
         console.log(`${toInsert.length} locations inserted, Result: ${result?.status}, ${result?.statusText}`);
         if (result?.error) {
           console.error(result.error);

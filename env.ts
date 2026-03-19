@@ -56,6 +56,12 @@ const envSchema = z.object({
   NEXT_PUBLIC_SUPABASE_URL: z.string().startsWith('https://').endsWith('supabase.co'),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(10),
   PRIVATE_SUPABASE_NODE_SERVICE_KEY: z.string().min(10),
+  // Test DB
+  TEST_DB_USER: z.string(),
+  TEST_DB_HOST: z.string(),
+  TEST_DB_DATABASE: z.string(),
+  TEST_DB_PASSWORD: z.string(),
+  TEST_DB_PORT: z.coerce.number().positive(),
   // SAPOL
   // JSON object string
   SAPOL_LOCATIONS_REQUEST_OPTS: z.string().transform((str) => JSON.parse(str)).pipe(requestOptionsSchema),

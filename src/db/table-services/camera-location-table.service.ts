@@ -3,17 +3,18 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { type RegionType } from '../../schemas/domain/region-type.enum.ts';
 import type {
   MobileSpeedCameraLocationDb,
-  MobileSpeedCameraLocationInsertDb,
+  MobileSpeedCameraLocationInsertDb
 } from '../../schemas/db/mobile-speed-camera-location-db.schema.ts';
 import { type SupabaseQuery } from '../sapol-db.service.ts';
+import { GenericTableService } from './generic-table.service.ts';
 
-// FIXME: Refactor to extend generic class for consistency
-export class CameraLocationTableService {
-  tableName: string = 'mobile_speed_camera_location';
-  private db: SupabaseClient | null;
 
+export class CameraLocationTableService extends GenericTableService<MobileSpeedCameraLocationDb, MobileSpeedCameraLocationInsertDb> {
   constructor(db: SupabaseClient | null) {
-    this.db = db;
+    super(
+      'mobile_speed_camera_location',
+      'id',
+      db);
   }
 
   getBusinessKeyDb(location: MobileSpeedCameraLocationDb | MobileSpeedCameraLocationInsertDb): string {
@@ -21,7 +22,7 @@ export class CameraLocationTableService {
   }
 
   /**
-   * TODO create db index for constraint
+   * TODO create db index/unique constraint (Materialised view?)
    * Used to for reconciling camera location records with scraped camera locations for the same date range
    * @param regionType
    * @param startDate
@@ -39,19 +40,35 @@ export class CameraLocationTableService {
     return Promise.resolve(null);
   }
 
-  getAllLocations(): SupabaseQuery<MobileSpeedCameraLocationDb> {
+  /**
+   * Retrieves the locations that don't have a defined street_full_canon
+   */
+  getLocationsToCanonise(): SupabaseQuery<MobileSpeedCameraLocationDb> {
     if (this.db) {
-      return this.db.from(this.tableName).select();
+      return this.db.from(this.tableName).select().is('street_full_canon', null);
     }
     return Promise.resolve(null);
   }
 
-  insertLocations(locations: MobileSpeedCameraLocationInsertDb[]): SupabaseQuery<MobileSpeedCameraLocationDb> {
-    return (this.db?.from(this.tableName)?.insert(locations).select() || Promise.resolve(null));
-  }
-
-  // using upsert to bulk update rows
-  updateLocations(locations: MobileSpeedCameraLocationDb[]): SupabaseQuery<MobileSpeedCameraLocationDb> {
-    return (this.db?.from(this.tableName)?.upsert(locations).select() || Promise.resolve(null));
+  /**
+   * Retrieves the locations that don't have matching location_by_suburb
+   */
+  getLocationsToResolve(limit?: number, region?:RegionType): SupabaseQuery<MobileSpeedCameraLocationDb> {
+    if (this.db) {
+      // TODO once function and tables are added
+      //    - get camera_locations that don't have a  (left join where resolved_location_id=null)
+      // this.db.rpc('get_streets_to_resolve', {
+      //   street_suburb_list: JSON.stringify(locations),
+      // });
+      const query = this.db.from(this.tableName).select().neq('street_full_canon', null);
+      if (region) {
+        query.eq('region_type', region);
+      }
+      if (limit) {
+        query.limit(limit);
+      }
+      return query;
+    }
+    return Promise.resolve(null);
   }
 }

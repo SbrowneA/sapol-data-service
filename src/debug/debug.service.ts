@@ -12,7 +12,7 @@ export class DebugService {
       const filePath = path.join('src/debug', fileName);
       const writeValue = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
       await writeFile(filePath, writeValue, { encoding: 'utf8' });
-      console.log('Wrote mobile-cameras.json');
+      console.log('Wrote ' + filePath);
     } catch (err) {
       console.error(err);
     }
