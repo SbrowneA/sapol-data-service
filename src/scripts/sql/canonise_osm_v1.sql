@@ -467,15 +467,11 @@ COMMIT;
 
 -- RUN CANONISATION JOB
 BEGIN;
--- Increase memory for session
--- SET work_mem = '512MB';
-
 -- suburbs
 DROP TABLE IF EXISTS suburbs;
 CREATE TABLE suburbs AS
-SELECT osm_id,
-       name,
-       upper(name)                    AS name_norm,
+SELECT osm_id as suburb_osm_id,
+       upper(name)                    AS suburb_name,
        admin_level,
        place,
        ST_UnaryUnion(ST_Collect(way)) AS geom
@@ -484,9 +480,8 @@ WHERE name IS NOT NULL
   AND (place = 'suburb'
     OR (boundary = 'administrative' AND admin_level IN ('8', '9', '10'))
     )
-GROUP BY osm_id,
-         name,
-         name_norm,
+GROUP BY suburb_osm_id,
+         suburb_name,
          admin_level,
          place;
 
@@ -573,7 +568,7 @@ WITH tokenised AS MATERIALIZED (SELECT s_norm.osm_id,
 -- STEP 3: SELECT and define the required fields
 SELECT osm_id,
        l.name,
-       -- l.name_norm,
+       f.name_norm,
 
        -- Full canonical
        CONCAT_WS(
@@ -604,7 +599,7 @@ SELECT osm_id,
        )          AS direction_suffix_canon,
        l.highway,
        l.way      AS geom
-FROM finalised
+FROM finalised f
          JOIN planet_osm_line l USING (osm_id);
 
 -- CREATE indexes for spatial queries
@@ -624,20 +619,20 @@ CREATE INDEX idx_streets_canon_full_name
 
 DROP INDEX IF EXISTS idx_suburb_name_norm;
 CREATE INDEX idx_suburb_name_norm
-    ON suburbs (name_norm);
+    ON suburbs (suburb_name);
 
 COMMIT;
 
 
 /*
-CREATE streets_by_suburb_temp
+CREATE tables to be dumped and imported streets_by_suburb_temp & suburbs_temp
 */
 BEGIN;
+-- (streets_canon + suburbs) -> streets_by_suburb_temp
 DROP TABLE IF EXISTS streets_by_suburb_temp;
 CREATE TABLE streets_by_suburb_temp AS
 SELECT s.street_full_canon as street_canon,
-       sub.name_norm as suburb_name,
-       sub.osm_id          AS suburb_osm_id,
+       sub.suburb_osm_id,
        array_agg(s.osm_id) AS street_osm_ids,
        -- Street geometries merged -> IF they are within the suburb AND have the same street_full_canon
        ST_LineMerge(
@@ -657,16 +652,17 @@ FROM streets_canon s
               ON s.geom && sub.geom
                   AND ST_Intersects(s.geom, sub.geom)
 GROUP BY s.street_full_canon,
-         sub.name_norm,
-         sub.osm_id;
-
+         sub.suburb_osm_id;
 ALTER TABLE streets_by_suburb_temp
     ADD CONSTRAINT uq_street_suburb_temp UNIQUE (street_canon, suburb_osm_id);
 
--- INDEX USED for location resolution pipeline
-DROP INDEX IF EXISTS streets_by_suburb_temp_lookup;
-CREATE INDEX streets_by_suburb_temp_lookup
-    ON streets_by_suburb_temp (street_canon, suburb_name);
+-- suburbs -> suburbs_temp
+DROP TABLE IF EXISTS suburbs_temp;
+CREATE TABLE suburbs_temp AS
+SELECT suburb_osm_id,
+       suburb_name,
+       geom as suburb_geom
+FROM suburbs;
 COMMIT;
 
 -- SELECT pg_size_pretty(pg_database_size(current_database()));

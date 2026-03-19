@@ -112,7 +112,7 @@ psql -h localhost -d <DATABASE_NAME> -U postgres -v ON_ERROR_STOP=1 -f <CANONISE
 ## 5.1 Dump
 
 ```shell
-pg_dump -Fc -t streets_by_suburb_temp osm2 > canonised_streets_suburbs.dump -U postgres -h <HOST>
+pg_dump -F c -t streets_by_suburb_temp -t suburbs_temp <DATABASE_NAME> > canonised_streets_suburbs.dump -U postgres -h <HOST> && echo dump success
 ```
 
 ## 5.2 Restore
