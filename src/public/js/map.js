@@ -3,7 +3,9 @@
  * @type {e.Map|e.Map}
  */
 (() =>{
-  const map = new maplibregl.Map({
+  // TODO Temporary global from script tag until webpack bundles maplibre-gl.
+  // eslint-disable-next-line no-undef
+  const _map = new maplibregl.Map({
     container: 'map',
     // MapLibre GL JS with MapTiler maps: https://docs.maptiler.com/maplibre/
     style: '/libs/maptiler-streets-v4/style.json',
@@ -13,7 +15,7 @@
     zoom: 10
   });
 
-  map.on('load', async function () {
+  _map.on('load', async function () {
     console.log('Map loaded!');
     const startDate = '2026-01-14';
     const endDate = '2026-01-14';
@@ -34,12 +36,12 @@
         }))
       };
 
-      map.addSource('streets-geometry', {
+      _map.addSource('streets-geometry', {
         type: 'geojson',
         data: featureCollection
       });
 
-      map.addLayer({
+      _map.addLayer({
         id: 'streets-layer',
         type: 'line',
         source: 'streets-geometry',
@@ -54,7 +56,7 @@
         }
       });
 
-      map.on('click', 'streets-layer', (e) => {
+      _map.on('click', 'streets-layer', (e) => {
         const feature = e.features?.[0]
 
         if (!feature) return

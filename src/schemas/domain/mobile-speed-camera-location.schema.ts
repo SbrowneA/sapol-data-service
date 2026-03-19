@@ -1,5 +1,5 @@
-import {z} from 'zod';
-import {RegionTypeEnum} from "./region-type.enum.ts";
+import { z } from 'zod';
+import { RegionTypeEnum } from './region-type.enum.ts';
 
 /**
  * Domain Schemas (BE)
@@ -21,7 +21,7 @@ export const MobileSpeedCameraLocationSchema = z.object({
   // Type of camera location, provided by SAPOL in two different lists with different sets of dates
   regionType: RegionTypeEnum,
   // when the record was inserted to the DB
-  createdAt: z.iso.datetime({offset: true}),
+  createdAt: z.iso.datetime({ offset: true }),
   // if and when the record was last updated in the DB
   updatedAt: z.iso.datetime().optional(),
   // Whether the record is currently shown on the SAPOL site (assume true until deleted)
@@ -30,12 +30,12 @@ export const MobileSpeedCameraLocationSchema = z.object({
   // Scrape run which last touched the
   scrapeRunId: z.int(),
   meta: z.object({
-      // For debugging: the css class that was set for the element when scraped
-      cssClass: z.string().optional(),
-      // Tracks all scrape runs that have affected this record appended (oldest to newest)
-      allScrapeRuns: z.int().array()
+    // For debugging: the css class that was set for the element when scraped
+    cssClass: z.string().optional(),
+    // Tracks all scrape runs that have affected this record appended (oldest to newest)
+    allScrapeRuns: z.int().array()
   })
-}).refine(record => record.startDate <= record.endDate, {
+}).refine((record) => record.startDate <= record.endDate, {
   message: 'startDate must domain <= endDate',
 });
 

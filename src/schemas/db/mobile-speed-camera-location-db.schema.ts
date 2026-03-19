@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { RegionTypeEnum } from "../domain/region-type.enum.ts";
+import { RegionTypeEnum } from '../domain/region-type.enum.ts';
 
 /**
  * DB Schemas
@@ -27,9 +27,9 @@ export const MobileSpeedCameraLocationDbSchema = z.object({
   scrape_run_id: z.int(),
   meta: z.object({
     css_class: z.string().optional(),
-    all_scrape_run_ids: z.int().array()
-  })
-}).refine(record => record.start_date <= record.end_date, {
+    all_scrape_run_ids: z.int().array(),
+  }),
+}).refine((record) => record.start_date <= record.end_date, {
   message: 'start_date must be <= end_date',
 });
 

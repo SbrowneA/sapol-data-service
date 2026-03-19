@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import {StreetTypeKeyTypeEnum} from "../domain/street-type-key-type.enum.ts";
+import { StreetTypeKeyTypeEnum } from '../domain/street-type-key-type.enum.ts';
 
 export const StreetTypeKeyTypeSchemaDb = z.object({
   key_type: StreetTypeKeyTypeEnum,

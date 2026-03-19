@@ -8,4 +8,4 @@ export const streetTypeKeyTypeValues = {
   CANONICAL: 'CANONICAL',
   ABBREVIATION: 'ABBREVIATION',
   VARIANT: 'VARIANT'
-}
+};

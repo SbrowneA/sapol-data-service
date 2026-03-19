@@ -16,7 +16,9 @@
   "main": "server.ts",
   "scripts": {
     "test": "test",
-    "run-local": "node --watch src/server.ts"
+    "run-local": "npm run lint && node --watch src/server.ts",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
   },
   "engines": {
     "node": ">=22 <=v24.11.1"
@@ -35,12 +37,18 @@
     "zod": "^4.1.13"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3.3.5",
+    "@eslint/js": "^10.0.1",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/luxon": "^3.7.1",
     "@types/morgan": "^1.9.10",
     "@types/node": "^24.10.1",
+    "eslint": "^10.0.3",
+    "eslint-config-google": "^0.14.0",
+    "globals": "^17.4.0",
     "@types/pg": "^8.18.0",
+    "typescript-eslint": "^8.57.1",
     "typescript": "^5.9.3"
   }
 }

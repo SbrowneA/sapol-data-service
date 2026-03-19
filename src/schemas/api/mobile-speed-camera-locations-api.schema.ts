@@ -12,7 +12,7 @@ export const CameraLocationApiSchema = z.object({
   lastUpdatedAt: z.iso.datetime(),
   // TODO install geolocation types GeoJSON
   geom: z.object()
-})
+});
 
 export const CameraLocationsByDayApiSchema = z.object({
   date: z.iso.date(),
@@ -29,9 +29,9 @@ export const MobileSpeedCameraLocationsApiSchema = z.object({
   startDate: z.iso.date(),
   endDate: z.iso.date(),
   days: z.array(CameraLocationsByDayApiSchema)
-}).refine(d => d.startDate <= d.endDate, {
+}).refine((d) => d.startDate <= d.endDate, {
   message: 'startDate must be <= endDate',
-}).refine(d => d.days.length > 0, {
+}).refine((d) => d.days.length > 0, {
   message: 'days must not be empty',
 });
 

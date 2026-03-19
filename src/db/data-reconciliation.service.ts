@@ -1,10 +1,10 @@
-import {type SupabaseQuery} from "./sapol-db.service.ts";
+import { type SupabaseQuery } from './sapol-db.service.ts';
 import type {
   MobileSpeedCameraLocationDb,
-  MobileSpeedCameraLocationInsertDb
-} from "../schemas/db/mobile-speed-camera-location-db.schema.ts";
-import {type RegionType} from "../schemas/domain/region-type.enum.ts";
-import {CameraLocationTableService} from "./table-services/camera-location-table.service.ts";
+  MobileSpeedCameraLocationInsertDb,
+} from '../schemas/db/mobile-speed-camera-location-db.schema.ts';
+import { type RegionType } from '../schemas/domain/region-type.enum.ts';
+import { CameraLocationTableService } from './table-services/camera-location-table.service.ts';
 
 type LocationReconciliationQueryGroup = {
   startDate: string,
@@ -21,8 +21,8 @@ export class MobileSpeedCameraLocationReconciliationService {
   static generateReconciliationMap(scrapedLocations: MobileSpeedCameraLocationInsertDb[]): ReconciliationMap {
     const reconciliationMap = new Map<string, LocationReconciliationQueryGroup>();
 
-    scrapedLocations.forEach(location => {
-      const key = `${location.region_type}|${location.start_date}|${location.end_date}`
+    scrapedLocations.forEach((location) => {
+      const key = `${location.region_type}|${location.start_date}|${location.end_date}`;
 
       if (reconciliationMap.has(key)) {
         reconciliationMap.get(key)?.scrapedLocations?.push(location);
@@ -43,11 +43,13 @@ export class MobileSpeedCameraLocationReconciliationService {
   /**
    * (Mutating Method) Returns the provided map with the corresponding db query to execute
    */
-  static generateDateRangeQueries(original: ReconciliationMap, cameraLocationTableManager: CameraLocationTableService): ReconciliationMap {
+  static generateDateRangeQueries(
+    original: ReconciliationMap,
+    cameraLocationTableManager: CameraLocationTableService): ReconciliationMap {
     original.forEach((value: LocationReconciliationQueryGroup, key, map) => {
       const query = cameraLocationTableManager.getLocationsForDateRageByRegion(value.regionType, value.startDate, value.endDate);
-      map.set(key, {...value, query});
-    })
+      map.set(key, { ...value, query });
+    });
     return original;
   }
 }

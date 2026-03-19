@@ -1,17 +1,17 @@
 import {
   type MobileCameraLocationResponse,
   CameraLocationApiSchema
-} from "../schemas/api/mobile-speed-camera-locations-api.schema.ts";
+} from '../schemas/api/mobile-speed-camera-locations-api.schema.ts';
 import {
   type MobileSpeedCameraLocation, type MobileSpeedCameraLocationInsert,
-  MobileSpeedCameraLocationSchema
-} from "../schemas/domain/mobile-speed-camera-location.schema.ts";
+  MobileSpeedCameraLocationSchema,
+} from '../schemas/domain/mobile-speed-camera-location.schema.ts';
 import {
   type MobileSpeedCameraLocationDb, type MobileSpeedCameraLocationInsertDb, MobileSpeedCameraLocationsInsertSchemaDb,
-  MobileSpeedCameraLocationDbSchema
-} from "../schemas/db/mobile-speed-camera-location-db.schema.ts";
-import {type ScrapeRun, type ScrapeRunInsert, ScrapeRunSchema} from "../schemas/domain/scrape-run.schema.ts";
-import {type ScrapeRunDb, type ScrapeRunInsertDb, ScrapeRunDbSchema} from "../schemas/db/scrape-run-db.schema.ts";
+  MobileSpeedCameraLocationDbSchema,
+} from '../schemas/db/mobile-speed-camera-location-db.schema.ts';
+import { type ScrapeRun, type ScrapeRunInsert, ScrapeRunSchema } from '../schemas/domain/scrape-run.schema.ts';
+import { type ScrapeRunDb, type ScrapeRunInsertDb, ScrapeRunDbSchema } from '../schemas/db/scrape-run-db.schema.ts';
 
 /**
  * Uses zod schemas to parse data between layers:

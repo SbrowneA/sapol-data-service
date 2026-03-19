@@ -1,7 +1,7 @@
-import {Router} from 'express';
-import path from "node:path";
-import {fileURLToPath} from "node:url";
-import helmet from "helmet";
+import { Router } from 'express';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import helmet from 'helmet';
 
 const viewsRoutes = Router();
 
@@ -19,10 +19,10 @@ viewsRoutes.get('/',
     }
   }),
   (req, res) => {
-  const __filename = fileURLToPath(import.meta.url);
-  const __dirname = path.dirname(__filename);
-  const filePath = path.join(__dirname, '../public/html/map.html');
-  res.sendFile(filePath);
-});
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
+    const filePath = path.join(__dirname, '../public/html/map.html');
+    res.sendFile(filePath);
+  });
 
 export default viewsRoutes;

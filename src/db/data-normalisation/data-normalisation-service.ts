@@ -1,7 +1,7 @@
-import {readFile} from "fs/promises";
-import path from "node:path";
-import {fileURLToPath} from "node:url";
-import {type StreetTypeDbInsert} from "../../schemas/db/street-type.schema.ts";
+import { readFile } from 'fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { type StreetTypeDbInsert, StreetTypeInsertSchemaDb } from '../../schemas/db/street-type.schema.ts';
 
 /**
  * Used to import Street types into Supabse DB
@@ -16,22 +16,19 @@ export class DataNormalisationService {
     const file = await readFile(filePath, 'utf8');
     const lines = file.split(/\r?\n/); // handle unix (\n) or windows (\r\n)
     lines.shift(); // remove header line
-    const fields = {
-      street_type_key: 'street_type_key',
-      canonical_key: 'canonical_key',
-      key_type: 'key_type'
-    };
     const streetTypes: StreetTypeDbInsert[] = [];
 
-    lines.forEach((line) => {
-      const values = line.split(',');
+    lines.forEach((line: string) => {
+      const values: string[] = line.split(',');
 
       if (values.length > 1) {
-        const streetType: any = {};
-        streetType[fields.street_type_key ?? ''] = values[0];
-        streetType[fields.canonical_key ?? ''] = values[1];
-        streetType[fields.key_type ?? ''] = values[2];
-        streetTypes.push(streetType);
+        const streetType: Record<string, string | undefined> = {};
+        streetType['street_type_key'] = values[0];
+        streetType['canonical_key'] = values[1];
+        streetType['key_type'] = values[2];
+        if (StreetTypeInsertSchemaDb.safeParse(streetType)) {
+          streetTypes.push(streetType as StreetTypeDbInsert);
+        }
       }
     });
     return streetTypes;

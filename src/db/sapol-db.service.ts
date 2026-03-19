@@ -1,7 +1,7 @@
-import { createClient, type SupabaseClient} from '@supabase/supabase-js'
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { PostgrestFilterBuilder } from '@supabase/postgrest-js';
 
-import { env } from '../../env.ts'
+import { env } from '../../env.ts';
 
 /**
  * See docs at: https://supabase.com/docs/reference/javascript/start
@@ -21,7 +21,7 @@ export type IdFieldType = string | number | 'id';
 type Thenable<T> = Exclude<Promise<T>, 'catch'>
 
 type SupabaseQueryBuilder<T extends Record<string, unknown>>
-  = PostgrestFilterBuilder<any, any, T, any[], string, any, "POST" | "GET" | "PATCH" | "DELETE">;
+  = PostgrestFilterBuilder<any, any, T, any[], string, any, 'POST' | 'GET' | 'PATCH' | 'DELETE'>;
 export type SupabaseQuery<T extends Record<string, unknown>>
   = SupabaseQueryBuilder<T> | Thenable<null>;
 

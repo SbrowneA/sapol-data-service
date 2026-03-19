@@ -1,5 +1,4 @@
-// FIXME add types for custom-env
-// @ts-ignore
+// @ts-expect-error: FIXME add types for custom-env
 import { env as loadEnv } from 'custom-env';
 import { z } from 'zod';
 
@@ -12,7 +11,7 @@ const isLocalEnv = process.env.APP_STAGE === 'local';
 
 // Assign variables for specified
 if (isDevelop) {
-  loadEnv()
+  loadEnv();
 } else if (isLocalEnv) {
   loadEnv('local');
 } else if (isTesting) {
@@ -28,7 +27,7 @@ if (isDevelop) {
  * @param commaString
  */
 const commaStringToArray = (commaString: string) =>
-  commaString.split(',').map(subStr => subStr.trim()).filter(subStr => !!subStr);
+  commaString.split(',').map((subStr) => subStr.trim()).filter((subStr) => !!subStr);
 
 const mockPathSchema = z.object({
   SCRAPED: z.string().startsWith('/').endsWith('.html'),
@@ -83,15 +82,14 @@ try {
   if (err instanceof z.ZodError) {
     console.warn('Invalid env variables');
     console.error(JSON.stringify(z.treeifyError(err), null, 2));
-    err.issues.forEach(e => {
+    err.issues.forEach((e) => {
       const path = e.path.join('.');
       console.log(`${path}: ${e.message}`);
     });
 
     // Kill process
     process.exit(1);
-  }
-  else {
+  } else {
     throw err;
   }
 }

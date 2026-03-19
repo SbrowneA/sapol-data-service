@@ -1,8 +1,8 @@
-import type { Response } from "express";
+import type { Response } from 'express';
 
-import {SupabaseClient} from "@supabase/supabase-js";
+import { SupabaseClient } from '@supabase/supabase-js';
 
-import {RunScrapeAndSaveResultsUseCase} from "./run-scrape-and-save.use-case.ts";
+import { RunScrapeAndSaveResultsUseCase } from './run-scrape-and-save.use-case.ts';
 
 export class ScrapingController {
   db: SupabaseClient;
@@ -21,14 +21,14 @@ export class ScrapingController {
     // if NO -
     // ELSE - load html from SAPOL site
 
-    const scrapeAndSaveUseCase =  new RunScrapeAndSaveResultsUseCase(this.db);
+    const scrapeAndSaveUseCase = new RunScrapeAndSaveResultsUseCase(this.db);
 
     try {
       const { scrapeRun, toInsert, toUpdate, toDeactivate, reconciliationMap } = await scrapeAndSaveUseCase.execute();
-      res.json({message: 'queries run', scrapeData: Array.from(reconciliationMap), toDeactivate, toUpdate, toInsert, scrapeRun});
+      res.json({ message: 'queries run', scrapeData: Array.from(reconciliationMap), toDeactivate, toUpdate, toInsert, scrapeRun });
     } catch (error) {
       console.error('something went wrong', error);
-      res.status(500).json({message: 'Something went wrong while executing scrape run', error});
+      res.status(500).json({ message: 'Something went wrong while executing scrape run', error });
     }
   }
 }

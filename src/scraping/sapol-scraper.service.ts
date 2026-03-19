@@ -1,24 +1,25 @@
-import {readFile} from "fs/promises";
-import {get as httpsGet, type RequestOptions} from 'node:https'
-import path from 'node:path'
-import {fileURLToPath} from "node:url";
+import { readFile } from 'fs/promises';
+import { get as httpsGet, type RequestOptions } from 'node:https';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-import {DateTime} from 'luxon';
-import * as cheerio from "cheerio";
-import {Element} from 'domhandler';
+import { DateTime } from 'luxon';
+import * as cheerio from 'cheerio';
+import { Element } from 'domhandler';
 
-import { env } from "../../env.ts";
+import { env } from '../../env.ts';
 import {
   type MobileSpeedCameraLocationInsert,
-  MobileSpeedCameraLocationSchema
-} from "../schemas/domain/mobile-speed-camera-location.schema.ts";
-import { type Cheerio } from "cheerio";
-import { type ZodSafeParseResult } from "zod";
-import { type ScrapeRun } from "../schemas/domain/scrape-run.schema.ts";
-import { type RegionType, regionTypeValues} from "../schemas/domain/region-type.enum.ts";
-import { type ScrapeRunInsertDb} from "../schemas/db/scrape-run-db.schema.ts";
-import {DebugService} from "../debug/debug.service.ts";
-import { type LocationResolutionRunInsertDb } from "../schemas/db/location-resolution-run-db.schema.ts";
+  MobileSpeedCameraLocationSchema,
+} from '../schemas/domain/mobile-speed-camera-location.schema.ts';
+import { type Cheerio } from 'cheerio';
+import { type ZodSafeParseResult } from 'zod';
+import { type ScrapeRun } from '../schemas/domain/scrape-run.schema.ts';
+import { type RegionType, regionTypeValues } from '../schemas/domain/region-type.enum.ts';
+import { type ScrapeRunInsertDb } from '../schemas/db/scrape-run-db.schema.ts';
+import { DebugService } from '../debug/debug.service.ts';
+import { type LocationResolutionRunInsertDb } from '../schemas/db/location-resolution-run-db.schema.ts';
+import { type ScrapeRunResults } from './run-scrape-and-save.types.ts';
 
 export class SapolScraperService {
   /**
@@ -27,7 +28,7 @@ export class SapolScraperService {
    * 2. Parse HTML to MobileSpeedCameraLocation
    * 3. Save/write MobileSpeedCameraLocations for debugging.
    */
-  public async scrapeLocations(scrapeRun: ScrapeRun): Promise<{ locations: MobileSpeedCameraLocationInsert[], scrapeRun: ScrapeRun }> {
+  public async scrapeLocations(scrapeRun: ScrapeRun): Promise<ScrapeRunResults> {
     let data: MobileSpeedCameraLocationInsert[] = [];
     try {
       // 1. load HTML from SAPOL site
@@ -53,23 +54,23 @@ export class SapolScraperService {
     //  1. store header in Supabse Storage or env file
     //  2. Set up automatic header re-generation - in case request fails
     return {
-      "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
       // "Accept-Encoding": "gzip, deflate, br, zstd",
-      "Accept-Language": "es-MX,es;q=0.9",
-      "Dnt": "1",
-      "Host": host,
-      "Priority": "u=0, i",
-      "Sec-Ch-Ua": "\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"",
-      "Sec-Ch-Ua-Mobile": "?0",
-      "Sec-Ch-Ua-Platform": "\"Windows\"",
-      "Sec-Fetch-Dest": "document",
-      "Sec-Fetch-Mode": "navigate",
-      "Sec-Fetch-Site": "none",
-      "Sec-Fetch-User": "?1",
-      "Upgrade-Insecure-Requests": "1",
-      "User-Agent": userAgent || "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-      "X-Amzn-Trace-Id": "Root=1-6969f7e1-358745d37af42cb925356931"
-    }
+      'Accept-Language': 'es-MX,es;q=0.9',
+      'Dnt': '1',
+      'Host': host,
+      'Priority': 'u=0, i',
+      'Sec-Ch-Ua': '"Google Chrome";v="143", "Chromium";v="143", "Not A(Brand";v="24"',
+      'Sec-Ch-Ua-Mobile': '?0',
+      'Sec-Ch-Ua-Platform': '"Windows"',
+      'Sec-Fetch-Dest': 'document',
+      'Sec-Fetch-Mode': 'navigate',
+      'Sec-Fetch-Site': 'none',
+      'Sec-Fetch-User': '?1',
+      'Upgrade-Insecure-Requests': '1',
+      'User-Agent': userAgent || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36',
+      'X-Amzn-Trace-Id': 'Root=1-6969f7e1-358745d37af42cb925356931'
+    };
   }
 
   private generateHtmlRequest(hostname: string, requestPath: string, protocol: string): Promise<string> {
@@ -81,7 +82,7 @@ export class SapolScraperService {
         method: 'GET',
         port: 443,
         headers: this.generateHeader(hostname)
-      }
+      };
       httpsGet(options, (res) => {
         let body = '';
 
@@ -93,10 +94,10 @@ export class SapolScraperService {
         res.on('end', () => {
           console.log('Response from', res.url, body.length);
           resolve(body);
-        })
+        });
       }).on('error', (err) => {
-        reject(err)
-      })
+        reject(err);
+      });
     });
   }
 
@@ -127,7 +128,7 @@ export class SapolScraperService {
       const __filename = fileURLToPath(import.meta.url);
       const __dirname = path.dirname(__filename);
       const filePath = path.join(__dirname, env.SAPOL_MOCK_RESPONSE_FILE_PATHS.SCRAPED);
-      htmlString = await readFile(filePath, {encoding: 'utf8'});
+      htmlString = await readFile(filePath, { encoding: 'utf8' });
     } catch (err) {
       console.error(err);
     }
@@ -148,12 +149,12 @@ export class SapolScraperService {
     const metroContainers = $('div.container').not('.country');
     // getting the first metro list (ul) because each metro-list contains all the metro locations
     const metroElements = metroContainers.children('ul').first().children('li');
-    const metroLocations: MobileSpeedCameraLocationInsert[] = this.paresElementsToLocations("METRO", metroElements, scrapeRun.scrapeRunId);
+    const metroLocations: MobileSpeedCameraLocationInsert[] = this.paresElementsToLocations('METRO', metroElements, scrapeRun.scrapeRunId);
 
     // Parse country locations
     const countryContainer = $('div.container.country');
-    const countryElements = countryContainer.children('ul.countrylist').children('li')
-    const countryLocations: MobileSpeedCameraLocationInsert[] = this.paresElementsToLocations("COUNTRY", countryElements, scrapeRun.scrapeRunId);
+    const countryElements = countryContainer.children('ul.countrylist').children('li');
+    const countryLocations: MobileSpeedCameraLocationInsert[] = this.paresElementsToLocations('COUNTRY', countryElements, scrapeRun.scrapeRunId);
 
     console.info('metro elements:', metroElements.length);
     console.info('metro locations:', metroLocations.length);
@@ -178,7 +179,11 @@ export class SapolScraperService {
    * @param scrapeRunId
    * @private
    */
-  private paresElementsToLocations(regionType: RegionType, elements: Cheerio<Element>, scrapeRunId: number): MobileSpeedCameraLocationInsert[] {
+  private paresElementsToLocations(
+    regionType: RegionType,
+    elements: Cheerio<Element>,
+    scrapeRunId: number
+  ): MobileSpeedCameraLocationInsert[] {
     // locations map to de-duplicate values (Duplicates can still exist in same SAPOL list)
     const locationsMap: Map<string, MobileSpeedCameraLocationInsert> = new Map();
 
@@ -186,20 +191,20 @@ export class SapolScraperService {
       let startDate: string;
       let endDate: string;
       // only add locations that showlist to avoid duplicates
-      const cssClass = (el.attribs as any)?.['class'];
+      const cssClass = this.getAttributeValue(el, 'class');
       if (cssClass.includes('showlist')) {
-        if (regionType === "METRO") {
-          const date: string = (el.attribs as any)?.['data-value'] || '';
-          const formattedDate = DateTime.fromFormat(date, "dd/MM/yyyy").toFormat('yyyy-MM-dd');
+        if (regionType === 'METRO') {
+          const date = this.getAttributeValue(el, 'data-value');
+          const formattedDate = DateTime.fromFormat(date, 'dd/MM/yyyy').toFormat('yyyy-MM-dd');
           startDate = formattedDate;
           endDate = formattedDate;
         } else {
-          const dateStart: string = (el.attribs as any)?.['datestart'] || '';
-          startDate = DateTime.fromFormat(dateStart, "dd/MM/yyyy").toFormat('yyyy-MM-dd');
-          const dateEnd: string = (el.attribs as any)?.['dateend'] || '';
-          endDate = DateTime.fromFormat(dateEnd, "dd/MM/yyyy").toFormat('yyyy-MM-dd');
+          const dateStart = this.getAttributeValue(el, 'datestart');
+          startDate = DateTime.fromFormat(dateStart, 'dd/MM/yyyy').toFormat('yyyy-MM-dd');
+          const dateEnd = this.getAttributeValue(el, 'dateend');
+          endDate = DateTime.fromFormat(dateEnd, 'dd/MM/yyyy').toFormat('yyyy-MM-dd');
         }
-        let locationText: string = (el.children?.[0] as any)?.data || null;
+        let locationText = this.getTextNodeValue(el);
         locationText = locationText.replace(/\s*\r?\n\s*/g, ' ').trim();
         const [street = '', suburb = ''] = locationText.toUpperCase().split(',');
 
@@ -220,7 +225,7 @@ export class SapolScraperService {
         });
 
         if (result.success) {
-          const location = result.data
+          const location: MobileSpeedCameraLocationInsert = result.data;
           const key = location.location + location.startDate + location.endDate;
           if (!locationsMap.has(key)) {
             locationsMap.set(key, location);
@@ -237,6 +242,20 @@ export class SapolScraperService {
 
     return Array.from(locationsMap.values());
   }
+
+  private getAttributeValue(element: Element, attributeName: string): string {
+    return element.attribs?.[attributeName] ?? '';
+  }
+
+  private getTextNodeValue(element: Element): string {
+    const firstChild = element.children?.[0];
+
+    if (firstChild && 'data' in firstChild) {
+      return firstChild.data;
+    }
+
+    return '';
+  }
 }
 
 export class SapolDataService {
@@ -245,6 +264,6 @@ export class SapolDataService {
     return {
       run_start: DateTime.utc().toISO(),
       run_result: 'PENDING'
-    }
+    };
   }
 }
