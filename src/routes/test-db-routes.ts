@@ -1,12 +1,24 @@
 import {Router} from "express";
 
 import {SupabaseClient} from "@supabase/supabase-js";
+import {z} from 'zod';
 
 import {TestDbService} from "../testing/test-db.service.ts";
 import {CameraLocationTableService} from "../db/table-services/camera-location-table.service.ts";
 import {SupaDatabase} from "../db/sapol-db.service.ts";
-import {type StreetBySuburbDb} from "../schemas/db/street-by-suburb-db.schema.ts";
 import {DebugService} from "../debug/debug.service.ts";
+
+const StreetsBySuburbApiDbSchema = z.object({
+  streets_by_suburb_id: z.int(),
+  street_canon: z.string(),
+  street_osm_ids: z.array(z.int()),
+  street_geom: z.json(),
+  suburb_name: z.string(),
+  suburb_osm_id: z.string(),
+  suburb_geom: z.json(),
+});
+
+type StreetsBySuburbApiDb = z.infer<typeof StreetsBySuburbApiDbSchema>;
 
 
 const testDbRoutes = Router();
@@ -49,6 +61,7 @@ testDbRoutes.get('/resolved-location-by-suburb', async (req, res) => {
     // Reference to street_by_suburb with street geometry
     streetBySuburbId?: number;
     streetGeometry?: object;
+    suburbGeometry?: object;
   };
   // create lookup map for unique (street+suburb) lookups.
   const uniqueLocations =
@@ -80,30 +93,21 @@ testDbRoutes.get('/resolved-location-by-suburb', async (req, res) => {
     .map((_, i) => `($${i * 2 + 1}, $${i * 2 + 2})`)
     .join(",");
   console.log('values:', values);
+
   // generate params (single flat array)
-  const params = locations.flatMap(l => [l.street, l.suburb]);
+  // const params = locations.flatMap(l => [l.street, l.suburb]);
+  // console.log('params:', params);
 
-
-  console.log('params:', params);
-  const query = `
-      SELECT s.streets_by_suburb_id,
-             s.street_canon,
-             s.suburb_name,
-             ST_AsGeoJSON(ST_Transform(s.street_geom, 4326)) AS street_geom
-      FROM streets_by_suburb s
-               JOIN (
-          VALUES ${values}
-          ) AS v(street, suburb)
-                    ON s.street_canon = v.street
-                        AND s.suburb_name = v.suburb;
-  `;
+  const query = `SELECT * FROM api_get_streets_from_input(
+            \$\$${JSON.stringify(locations)}\$\$
+          );`
 
   console.log('query:', query);
 
   // run query to resolve locations
   try {
-    const result = await testDbConnectionService.runQuery(query, params);
-    (result.rows as StreetBySuburbDb[]).forEach((row: StreetBySuburbDb) => {
+    const result = await testDbConnectionService.runQuery(query);
+    (result.rows as StreetsBySuburbApiDb[]).forEach((row: StreetsBySuburbApiDb) => {
       console.log(row);
       // Link locations to street_by_suburb record
       const key = `${row.street_canon}|${row.suburb_name}`;
@@ -112,7 +116,8 @@ testDbRoutes.get('/resolved-location-by-suburb', async (req, res) => {
           .set(key, {
             ...uniqueLocations.get(key) as ResolveMapItem,
             streetBySuburbId: row.streets_by_suburb_id,
-            streetGeometry: JSON.parse(row.street_geom as string)
+            streetGeometry: JSON.parse(row.street_geom as string),
+            suburbGeometry: JSON.parse(row.suburb_geom as string)
           });
       }
     });
