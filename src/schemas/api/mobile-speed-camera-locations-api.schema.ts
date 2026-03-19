@@ -10,7 +10,7 @@ export const CameraLocationApiSchema = z.object({
   location: z.string(),
   // ISO string
   lastUpdatedAt: z.iso.datetime(),
-  // TODO install geolocation types
+  // TODO install geolocation types GeoJSON
   geom: z.object()
 })
 

@@ -3,6 +3,9 @@ import path from "node:path";
 import {fileURLToPath} from "node:url";
 import {type StreetTypeDbInsert} from "../../schemas/db/street-type.schema.ts";
 
+/**
+ * Used to import Street types into Supabse DB
+ */
 export class DataNormalisationService {
   public static async getStreetTypesFromFile(): Promise<StreetTypeDbInsert[]> {
     // read csv for street types

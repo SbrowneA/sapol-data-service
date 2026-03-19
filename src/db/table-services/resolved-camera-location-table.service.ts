@@ -1,7 +1,7 @@
 import {SupabaseClient} from "@supabase/supabase-js";
 
 import {GenericTableService} from "./generic-table.service.ts";
-import {
+import type {
   ResolvedCameraLocationDb,
   ResolvedCameraLocationInsertDb
 } from "../../schemas/db/resolved-camera-location-db.schema.ts";
