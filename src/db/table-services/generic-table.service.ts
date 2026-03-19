@@ -1,5 +1,5 @@
-import {type IdFieldType, type SupabaseQuery} from "../sapol-db.service.ts";
-import { type SupabaseClient } from "@supabase/supabase-js";
+import { type IdFieldType, type SupabaseQuery } from '../sapol-db.service.ts';
+import { type SupabaseClient } from '@supabase/supabase-js';
 
 /**
  * Manages the provided table based on the provided types
@@ -57,10 +57,10 @@ export class GenericTableService<T extends Record<string, unknown>, I extends Re
 
   // removeRows(itemIds: IdFieldType[]): SupabaseQuery<T> {
   //   removeRows(itemIds: string[]): Promise<T> {
-    // const query = itemIds.length > 1
-    //   ? this.db?.from(this.tableName)?.delete()?.in(this.idFieldName, itemIds)
-    //   : this.db?.from(this.tableName)?.delete()?.eq(this.idFieldName, itemIds[0]);
-    // return query?.select() || Promise.resolve(null);
+  // const query = itemIds.length > 1
+  //   ? this.db?.from(this.tableName)?.delete()?.in(this.idFieldName, itemIds)
+  //   : this.db?.from(this.tableName)?.delete()?.eq(this.idFieldName, itemIds[0]);
+  // return query?.select() || Promise.resolve(null);
   // }
 
   /**
@@ -69,7 +69,7 @@ export class GenericTableService<T extends Record<string, unknown>, I extends Re
    */
   upsertRows(items: I[]): SupabaseQuery<T> {
     if (this.db) {
-      return this.db.from(this.tableName).upsert(items).select()
+      return this.db.from(this.tableName).upsert(items).select();
     }
     return Promise.resolve(null);
   }
@@ -81,7 +81,7 @@ export class GenericTableService<T extends Record<string, unknown>, I extends Re
    */
   insertRows(items: I[]): SupabaseQuery<T> {
     if (this.db) {
-      return this.db.from(this.tableName).insert(items).select()
+      return this.db.from(this.tableName).insert(items).select();
     }
     return Promise.resolve(null);
   }

@@ -15,7 +15,7 @@
     zoom: 10
   });
 
-  _map.on('load', async function () {
+  _map.on('load', async function() {
     console.log('Map loaded!');
     const startDate = '2026-01-14';
     const endDate = '2026-01-14';
@@ -57,16 +57,16 @@
       });
 
       _map.on('click', 'streets-layer', (e) => {
-        const feature = e.features?.[0]
+        const feature = e.features?.[0];
 
-        if (!feature) return
+        if (!feature) return;
 
-        const props = feature.properties
+        const props = feature.properties;
 
         console.log('Clicked - street:', props.street, 'suburb:', props.suburb);
-      })
+      });
     } catch (err) {
-      console.error(err)
+      console.error(err);
     }
   });
 })();

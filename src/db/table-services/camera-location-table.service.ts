@@ -6,7 +6,7 @@ import type {
   MobileSpeedCameraLocationInsertDb
 } from '../../schemas/db/mobile-speed-camera-location-db.schema.ts';
 import { type SupabaseQuery } from '../sapol-db.service.ts';
-import {GenericTableService} from './generic-table.service.ts';
+import { GenericTableService } from './generic-table.service.ts';
 
 
 export class CameraLocationTableService extends GenericTableService<MobileSpeedCameraLocationDb, MobileSpeedCameraLocationInsertDb> {
@@ -62,7 +62,7 @@ export class CameraLocationTableService extends GenericTableService<MobileSpeedC
       // });
       const query = this.db.from(this.tableName).select().neq('street_full_canon', null);
       if (region) {
-        query.eq('region_type', region)
+        query.eq('region_type', region);
       }
       if (limit) {
         query.limit(limit);

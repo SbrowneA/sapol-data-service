@@ -40,8 +40,8 @@ normalisationRoutes.get('/normalise-all', async (req, res) => {
       };
     });
 
-  const updatedResult
-    = await cameraLocationTableManager.upsertRows(toUpdate) || {} as PostgrestResponse<MobileSpeedCameraLocationDb[]>;
+  const updatedResult =
+    await cameraLocationTableManager.upsertRows(toUpdate) || {} as PostgrestResponse<MobileSpeedCameraLocationDb[]>;
 
   res.json({
     data: result?.data || [],

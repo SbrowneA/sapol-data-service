@@ -1,12 +1,12 @@
-import {Router} from "express";
+import { Router } from 'express';
 
-import {SupabaseClient} from "@supabase/supabase-js";
-import {z} from 'zod';
+import { SupabaseClient } from '@supabase/supabase-js';
+import { z } from 'zod';
 
-import {TestDbService} from "../testing/test-db.service.ts";
-import {CameraLocationTableService} from "../db/table-services/camera-location-table.service.ts";
-import {SupaDatabase} from "../db/sapol-db.service.ts";
-import {DebugService} from "../debug/debug.service.ts";
+import { TestDbService } from '../testing/test-db.service.ts';
+import { CameraLocationTableService } from '../db/table-services/camera-location-table.service.ts';
+import { SupaDatabase } from '../db/sapol-db.service.ts';
+import { DebugService } from '../debug/debug.service.ts';
 
 const StreetsBySuburbApiDbSchema = z.object({
   streets_by_suburb_id: z.int(),
@@ -30,27 +30,27 @@ const testDbConnectionService = new TestDbService();
 testDbRoutes.get('/streets-by-suburb', async (req, res) => {
   try {
     const result = await testDbConnectionService.runQuery('SELECT * FROM streets_by_suburb LIMIT 10');
-    res.json({message: 'streets-by-suburb table:', result});
+    res.json({ message: 'streets-by-suburb table:', result });
   } catch (err) {
-    res.status(500).json({error: err});
+    res.status(500).json({ error: err });
   }
 });
 
 testDbRoutes.get('/locations-to-canonise', async (req, res) => {
   const result = await cameraLocationTableManager.getLocationsToCanonise();
   if (result?.error) {
-    res.json({error: result.error}).status(500);
+    res.json({ error: result.error }).status(500);
   }
   const data = result?.data || [];
-  res.json({message: 'locations to canonise', data: data, count: data.length});
+  res.json({ message: 'locations to canonise', data: data, count: data.length });
 });
 
 testDbRoutes.get('/resolved-location-by-suburb', async (req, res) => {
   // const result = await cameraLocationTableManager.getLocationsToResolve(50, "COUNTRY");
-  const result = await cameraLocationTableManager.getLocationsToResolve(50, "METRO");
+  const result = await cameraLocationTableManager.getLocationsToResolve(50, 'METRO');
 
   if (result?.error) {
-    res.json({error: result.error}).status(500);
+    res.json({ error: result.error }).status(500);
   }
 
   type ResolveMapItem = {
@@ -67,7 +67,7 @@ testDbRoutes.get('/resolved-location-by-suburb', async (req, res) => {
   const uniqueLocations =
     new Map<string, ResolveMapItem>();
 
-  (result?.data || []).forEach(loc => {
+  (result?.data || []).forEach((loc) => {
     const key = `${loc.street_full_canon}|${loc.suburb_norm}`;
     if (uniqueLocations.has(key)) {
       uniqueLocations.set(key, {
@@ -91,7 +91,7 @@ testDbRoutes.get('/resolved-location-by-suburb', async (req, res) => {
   const values = locations
     // Counts in pairs e.g. ($1{i=0*2+1}, $2{i=0*2+2}) ($3{i=1+*2+1}, $4{i=1*2+2})
     .map((_, i) => `($${i * 2 + 1}, $${i * 2 + 2})`)
-    .join(",");
+    .join(',');
   console.log('values:', values);
 
   // generate params (single flat array)
@@ -99,8 +99,8 @@ testDbRoutes.get('/resolved-location-by-suburb', async (req, res) => {
   // console.log('params:', params);
 
   const query = `SELECT * FROM api_get_streets_from_input(
-            \$\$${JSON.stringify(locations)}\$\$
-          );`
+            $$${JSON.stringify(locations)}$$
+          );`;
 
   console.log('query:', query);
 
@@ -125,9 +125,9 @@ testDbRoutes.get('/resolved-location-by-suburb', async (req, res) => {
     DebugService.writeDataForDebug(v, 'resolved-locations.json');
     console.log('resolved:', v);
     // res.json({message: 'resolved camera-locations from streets-by-suburb', result, query, locations});
-    res.json({message: 'resolved camera-locations from streets-by-suburb', resolved: v});
+    res.json({ message: 'resolved camera-locations from streets-by-suburb', resolved: v });
   } catch (err) {
-    res.json({error: err}).status(500);
+    res.json({ error: err }).status(500);
   }
 });
 

@@ -1,7 +1,6 @@
-import {Pool, type QueryResult, type QueryResultRow} from 'pg';
+import { Pool, type QueryResult, type QueryResultRow } from 'pg';
 
-import { env } from "../../env.ts";
-import {type MobileSpeedCameraLocationDb} from "../schemas/db/mobile-speed-camera-location-db.schema.ts";
+import { env } from '../../env.ts';
 
 export class TestDbService {
   pool: Pool;
@@ -23,22 +22,9 @@ export class TestDbService {
         return this.pool.query(query, params);
       }
       return this.pool.query(query);
-    } catch(error) {
+    } catch (error) {
       console.error(error);
       throw error;
     }
-  }
-
-  static getLookupKey(location: MobileSpeedCameraLocationDb): string {
-    return `${location.street_full_canon}_${location.suburb_norm}`;
-  }
-
-  crateQueryFromLocations(camLocations: MobileSpeedCameraLocationDb[]): string {
-    const query = '';
-    const lookupMap = new Map<string, QueryResultRow>();
-    camLocations.forEach(camLocation => {
-      const key = TestDbService.getLookupKey(camLocation);
-    });
-    return query;
   }
 }

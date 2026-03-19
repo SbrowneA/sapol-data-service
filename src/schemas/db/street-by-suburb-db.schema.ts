@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 export const StreetBySuburbDbSchema = z.object({
   streets_by_suburb_id: z.int(),

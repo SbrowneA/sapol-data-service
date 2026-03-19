@@ -1,9 +1,9 @@
-import {SupabaseClient} from "@supabase/supabase-js";
+import { SupabaseClient } from '@supabase/supabase-js';
 
-import {GenericTableService} from "./generic-table.service.ts";
-import {type StreetBySuburbDb} from "../../schemas/db/street-by-suburb-db.schema.ts";
-import type {SupabaseQuery} from "../sapol-db.service.ts";
-import type {MobileSpeedCameraLocationDb} from "../../schemas/db/mobile-speed-camera-location-db.schema.ts";
+import { GenericTableService } from './generic-table.service.ts';
+import { type StreetBySuburbDb } from '../../schemas/db/street-by-suburb-db.schema.ts';
+import type { SupabaseQuery } from '../sapol-db.service.ts';
+import type { MobileSpeedCameraLocationDb } from '../../schemas/db/mobile-speed-camera-location-db.schema.ts';
 
 // TODO create read only base class
 export class StreetBySuburbTableService extends GenericTableService<StreetBySuburbDb, StreetBySuburbDb> {

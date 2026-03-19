@@ -1,6 +1,6 @@
-import { z } from "zod";
-import {ScrapeResultEnum} from "../domain/scrape-run.schema.ts";
-import {IsoDateTimeWithOffset} from "../domain/iso-with-offset.schema.ts";
+import { z } from 'zod';
+import { ScrapeResultEnum } from '../domain/scrape-run.schema.ts';
+import { IsoDateTimeWithOffset } from '../domain/iso-with-offset.schema.ts';
 
 export const LocationResolutionRunDbSchema = z.object({
   resolution_run_id: z.int(),
@@ -11,7 +11,7 @@ export const LocationResolutionRunDbSchema = z.object({
   updated_at: IsoDateTimeWithOffset.nullable()
 });
 export const LocationResolutionRunInsertDbSchema = LocationResolutionRunDbSchema
-  .omit({resolution_run_id: true, created_at: true, updated_at: true, run_end: true});
+  .omit({ resolution_run_id: true, created_at: true, updated_at: true, run_end: true });
 
 export type LocationResolutionRunDb = z.infer<typeof LocationResolutionRunDbSchema>;
 export type LocationResolutionRunInsertDb = z.infer<typeof LocationResolutionRunInsertDbSchema>;
