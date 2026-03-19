@@ -15,7 +15,9 @@
 
   map.on('load', async function () {
     console.log('Map loaded!');
-    const { resolved } = await (await fetch('test-db/resolved-location-by-suburb')).json() || {};
+    const startDate = '2026-01-14';
+    const endDate = '2026-01-14';
+    const { resolved } = await (await fetch(`test/resolved-locations?start_date=${startDate}&end_date=${endDate}`)).json() || {};
     try {
       console.log('resolved', resolved);
 
@@ -24,11 +26,11 @@
         features: resolved.map((r) => ({
           type: 'Feature',
           properties: {
-            street: r.street,
-            suburb: r.suburb,
-            streetBySuburbId: r.streetBySuburbId
+            street: r.street_name,
+            suburb: r.suburb_name,
+            resolvedLocationId: r.resolved_location_id,
           },
-          geometry: r.streetGeometry
+          geometry: JSON.parse(r.street_geom)
         }))
       };
 

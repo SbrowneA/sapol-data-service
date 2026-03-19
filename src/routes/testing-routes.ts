@@ -55,4 +55,24 @@ testingRoutes.get('/locations', async (req, res) => {
   });
 });
 
+testingRoutes.get('/resolved-locations', async (req, res) => {
+  const startDate = req.query['start_date'] || "";
+  const endDate = req.query['end_date'] || "";
+  console.log('startDate', startDate, 'endDate', endDate);
+
+  if (db) {
+    if (!startDate || !endDate) {
+      res.status(400).json({error: 'a valid "start_date" and "end_date" are required'});
+    }
+    // todo add region filter
+    const {data, error} = await db.rpc('api_resolved_locations_by_date_range', {q_start_date: startDate, q_end_date: endDate}).limit(10)
+    if (data) {
+      res.json({ resolved: data });
+    }
+    if (error) {
+      res.json({ error: error }).status(500);
+    }
+  }
+});
+
 export default testingRoutes;
