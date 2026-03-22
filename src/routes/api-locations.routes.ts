@@ -3,6 +3,8 @@ import { Router } from 'express';
 import { SupabaseClient } from '@supabase/supabase-js';
 
 import { SupaDatabase } from '../db/sapol-db.service.ts';
+import { type ApiCameraLocation, type ApiCameraLocationsByRegion } from '../schemas/api/api-speed-camera-locations-for-date-by-region.ts';
+import { regionTypeValues } from '../schemas/domain/region-type.enum.ts';
 
 const apiLocationsRoutes = Router();
 const db: SupabaseClient | null = SupaDatabase.getInstance();
@@ -25,17 +27,33 @@ apiLocationsRoutes.get('/', async (req, res) => {
     return res.status(500).json({ error: 'database connection unavailable' });
   }
 
-  const { data, error } = await db
-    .rpc('api_resolved_locations_by_date_range', { q_start_date: startDate, q_end_date: endDate })
-    // todo add region filters
-    // .eq({ })
-    .limit(10);
+  const queryParams = {
+    q_start_date: startDate,
+    q_end_date: endDate
+  };
 
-  if (error) {
-    return res.status(500).json({ error });
+  const [metroResult, countryResult] = await Promise.all([
+    db.rpc('api_resolved_locations_by_date_range',
+      { ...queryParams, q_region: regionTypeValues.METRO }
+    ).limit(200),
+    db.rpc('api_resolved_locations_by_date_range',
+      { ...queryParams, q_region: regionTypeValues.COUNTRY }
+    ).limit(200)
+  ]);
+
+  if (metroResult.error || countryResult.error) {
+    return res.status(500).json({ error: metroResult.error || countryResult.error });
   }
 
-  return res.json({ locations: { metro: data, country: []}, dateRange: { start_date: startDate, end_date: endDate }});
+  const response: ApiCameraLocationsByRegion = {
+    locations: {
+      metro: (metroResult.data || []) as ApiCameraLocation[],
+      country: (countryResult.data || []) as ApiCameraLocation[]
+    },
+    dateRange: { startDate, endDate }
+  };
+
+  return res.json(response);
 });
 
 export default apiLocationsRoutes;
