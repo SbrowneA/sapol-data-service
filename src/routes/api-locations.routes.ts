@@ -10,6 +10,8 @@ const apiLocationsRoutes = Router();
 const db: SupabaseClient | null = SupaDatabase.getInstance();
 
 apiLocationsRoutes.get('/', async (req, res) => {
+  // 2 min cache
+  res.set('Cache-Control', 'public, max-age=120');
   let startDate = `${req.query['start_date'] || ''}`;
   let endDate = `${req.query['end_date'] || ''}`;
   const date = `${req.query['date'] || ''}`;
