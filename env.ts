@@ -39,7 +39,17 @@ const mockPathSchema = z.object({
 const requestOptionsSchema = z.object({
   path: z.string().startsWith('/'),
   host: z.string(),
-  protocol: z.enum(['https:', 'http:']),
+  protocol: z.enum(['https:']),
+});
+
+const apiUrlSchema = z.string().refine((value) => {
+  if (value.startsWith('https://')) {
+    return true;
+  }
+
+  return isLocalEnv && value.startsWith('http://');
+}, {
+  message: 'API_URL must use https unless APP_STAGE is local',
 });
 
 // define the env schema
@@ -48,7 +58,7 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   APP_STAGE: z.enum(['dev', 'test', 'prod', 'local']).default('local'),
   // Server
-  API_URL: z.string().startsWith('http://', 'https://'),
+  API_URL: apiUrlSchema,
   PORT: z.coerce.number().positive().default(3000),
   CORS_ORIGINS: z.string().transform(commaStringToArray).pipe(z.string().array()),
   REQUEST_TIMEOUT: z.coerce.number().default(60_000),
@@ -63,7 +73,7 @@ const envSchema = z.object({
   SAPOL_LOCATIONS_REQUEST_OPTS: z.string().transform((str) => JSON.parse(str)).pipe(requestOptionsSchema),
   SAPOL_MOCK_RESPONSE_FILE_PATHS: z.string().transform((str) => JSON.parse(str)).pipe(mockPathSchema),
   // favoring using mock HTML over making reques
-  USE_MOCK_HTML: z.transform((v): boolean => v !== 'false').default(true),
+  USE_MOCK_HTML: z.transform((v): boolean => v !== 'false').default(false),
   SA_TIMEZONE_ID: z.string().includes('/'),
 });
 
