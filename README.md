@@ -10,8 +10,7 @@ A service for data analysis and visualisation of data published by SA Police.
 
 * Backend API: Node.js (TypeScript)
     * Web Scraping: Cherio.js
-* Frontend: JavaScript, HTML, CSS, GeoJSON
-    * Map API: Mplibre + MapTiler
+* Frontend: Vite-React ([sapol-web-app](https://github.com/SbrowneA/sapol-web-app))
 * GeoSpatial data pipeline (ingestion, transformation, load)
     * OpenStreetMap(OSM) `planet.pbf` extract
     * Transform Tools: osmconvert -> osmfilter -> osm2pgsql -> PostgreSQL + PostGIS
