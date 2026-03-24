@@ -30,12 +30,11 @@ export class SapolScraperService {
    */
   public async scrapeLocations(scrapeRun: ScrapeRun): Promise<ScrapeRunResults> {
     try {
-      let data: MobileSpeedCameraLocationInsert[] = [];
       // 1. load HTML from SAPOL site
       const html = await this.loadPageHtml();
       await DebugService.writeDataForDebug(html, 'last-scrape.html');
       // 2. Parse html into data
-      data = this.parseHtmlPage(html || '', scrapeRun);
+      const data: MobileSpeedCameraLocationInsert[] = this.parseHtmlPage(html || '', scrapeRun);
       // 2.1 save debug information
       await DebugService.writeDataForDebug(data, 'mobile-cameras.json');
       // 3. update scrape status

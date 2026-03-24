@@ -35,8 +35,4 @@ const __dirname = path.dirname(__filename);
 console.log(`Public (static) files dir: ${__dirname}\\public`);
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.listen(env.PORT, () =>{
-  console.log(`Server running on ${env.API_URL}:${env.PORT}`);
-});
-
 export default app;

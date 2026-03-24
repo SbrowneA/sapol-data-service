@@ -59,6 +59,8 @@ const envSchema = z.object({
   APP_STAGE: z.enum(['dev', 'test', 'prod', 'local']).default('local'),
   // Server
   API_URL: apiUrlSchema,
+  // how long api responses should be cached by client (seconds)
+  API_CACHE_DURATION_S: z.coerce.number().default(60),
   PORT: z.coerce.number().positive().default(3000),
   CORS_ORIGINS: z.string().transform(commaStringToArray).pipe(z.string().array()),
   REQUEST_TIMEOUT: z.coerce.number().default(60_000),

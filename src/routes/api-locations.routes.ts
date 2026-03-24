@@ -5,13 +5,14 @@ import { SupabaseClient } from '@supabase/supabase-js';
 import { SupaDatabase } from '../db/sapol-db.service.ts';
 import { type ApiCameraLocation, type ApiCameraLocationsByRegion } from '../schemas/api/api-speed-camera-locations-for-date-by-region.ts';
 import { regionTypeValues } from '../schemas/domain/region-type.enum.ts';
+import { env } from '../../env.ts';
 
 const apiLocationsRoutes = Router();
 const db: SupabaseClient | null = SupaDatabase.getInstance();
 
 apiLocationsRoutes.get('/', async (req, res) => {
   // 2 min cache
-  res.set('Cache-Control', 'public, max-age=120');
+  res.set('Cache-Control', `public, max-age=${env.API_CACHE_DURATION_S}`);
   let startDate = `${req.query['start_date'] || ''}`;
   let endDate = `${req.query['end_date'] || ''}`;
   const date = `${req.query['date'] || ''}`;
