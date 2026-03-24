@@ -17,10 +17,6 @@ const scrapingController = new ScrapingController(db);
 const cameraLocationTableManager = new CameraLocationTableService(db);
 const scrapeRunTableManager = new ScrapeRunTableService(db);
 
-testingRoutes.get('/', (req, res) => {
-  res.json({ message: `main route` });
-});
-
 testingRoutes.get('/scrape-runs', async (req, res) => {
   const results = await scrapeRunTableManager.getAll();
   if (results?.error) {
