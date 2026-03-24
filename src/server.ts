@@ -1,11 +1,11 @@
-import type { Response } from 'express';
+import type { Request, Response } from 'express';
 
 import app from './app.ts';
 import apiLocationsRoutes from './routes/api-locations.routes.ts';
 import testingRoutes from './routes/testing-routes.ts';
 import { isLocal } from '../env.ts';
 
-app.get('/health', (res: Response) => {
+app.get('/health', (req: Request, res: Response) => {
   res.send(`App is running - uptime: ${process.uptime()}s`);
 });
 
@@ -15,10 +15,11 @@ if (isLocal) {
 }
 app.use('/api/camera-locations', apiLocationsRoutes);
 
-app.get('/', (res: Response) => {
-  res.redirect(300, '/health');
+app.get('/', (req: Request, res: Response) => {
+  res.redirect(302, '/health');
 });
+
 // catch all route
-app.get('/*splat', (res: Response) => {
+app.get('/*splat', (req: Request, res: Response) => {
   res.status(404).json({ message: '404: Not Found' });
 });
