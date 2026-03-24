@@ -5,7 +5,10 @@ import { DateTime } from 'luxon';
 import { SapolDataService, SapolScraperService } from './sapol-scraper.service.ts';
 import { ScrapeRunTableService } from '../db/table-services/scrape-run-table.service.ts';
 import { CameraLocationTableService } from '../db/table-services/camera-location-table.service.ts';
-import { MobileSpeedCameraLocationReconciliationService, type ReconciliationMap } from '../db/data-reconciliation.service.ts';
+import {
+  MobileSpeedCameraLocationReconciliationService,
+  type ReconciliationMap
+} from '../db/data-reconciliation.service.ts';
 import { type ScrapeRun } from '../schemas/domain/scrape-run.schema.ts';
 import { type ScrapeRunDb } from '../schemas/db/scrape-run-db.schema.ts';
 import { DataMappingService } from '../db/data-mapping.service.ts';
@@ -20,6 +23,7 @@ export class RunScrapeAndSaveResultsUseCase {
   cameraLocationTableManager: CameraLocationTableService;
   scrapeRunTableManager: ScrapeRunTableService;
   sapolScraperService: SapolScraperService;
+
   constructor(db: SupabaseClient | null) {
     if (!db) {
       throw new Error('Database is not initialised.');
@@ -47,44 +51,52 @@ export class RunScrapeAndSaveResultsUseCase {
     const scrapeRun = await this.initialiseScrapeRun();
     console.log('scrape run created & parsed: ', scrapeRun);
 
-    // 2.1 scrape data
-    const scrapeData = await this.sapolScraperService.scrapeLocations(scrapeRun);
+    try {
+      // 2.1 scrape data
+      const scrapeData = await this.sapolScraperService.scrapeLocations(scrapeRun);
 
-    // 2.2 parse to db datatype
-    const locationsToDbInsert: MobileSpeedCameraLocationInsertDb[] =
-      scrapeData.locations.map(DataMappingService.cameraLocationBeToDbInsert);
+      // 2.2 parse to db datatype
+      const locationsToDbInsert: MobileSpeedCameraLocationInsertDb[] =
+        scrapeData.locations.map(DataMappingService.cameraLocationBeToDbInsert);
 
-    // 3.1 group scraped locations into a queryable reconciliationMap
-    const reconciliationMap = MobileSpeedCameraLocationReconciliationService.generateReconciliationMap(locationsToDbInsert);
+      // 3.1 group scraped locations into a queryable reconciliationMap
+      const reconciliationMap = MobileSpeedCameraLocationReconciliationService.generateReconciliationMap(locationsToDbInsert);
 
-    reconciliationMap.forEach((val, key) => {
-      console.log(`${key} \t scrapedLocations: ${val.scrapedLocations.length}`);
-    });
+      reconciliationMap.forEach((val, key) => {
+        console.log(`${key} \t scrapedLocations: ${val.scrapedLocations.length}`);
+      });
 
-    // 3.2 query regionType + startDate + endDate
-    MobileSpeedCameraLocationReconciliationService.generateDateRangeQueries(reconciliationMap, this.cameraLocationTableManager);
-    await this.runReconciliationCheckQueries(reconciliationMap);
-    console.log('CHECK QUERIES RUN');
+      // 3.2 query regionType + startDate + endDate
+      MobileSpeedCameraLocationReconciliationService.generateDateRangeQueries(reconciliationMap, this.cameraLocationTableManager);
+      await this.runReconciliationCheckQueries(reconciliationMap);
+      console.log('CHECK QUERIES RUN');
 
-    // 4. Prepare for reconciliation (compare with existing records)
-    // 4.1 Find records toInsert, toUpdate, and toDeactivate
-    const { toInsert, toUpdate, toDeactivate } = this.compareScrapedWithExistingRecords(reconciliationMap);
-    const scrapeRunId = scrapeData.scrapeRun.scrapeRunId;
+      // 4. Prepare for reconciliation (compare with existing records)
+      // 4.1 Find records toInsert, toUpdate, and toDeactivate
+      const { toInsert, toUpdate, toDeactivate } = this.compareScrapedWithExistingRecords(reconciliationMap);
+      const scrapeRunId = scrapeData.scrapeRun.scrapeRunId;
 
-    // 5. Execute reconciliation (Updates & Insertions)
-    // 5.1 Deactivate - records that are NOT found in the scraped locations
-    await this.deactivateDeletedLocations(scrapeRunId, toDeactivate);
+      // 5. Execute reconciliation (Updates & Insertions)
+      // 5.1 Deactivate - records that are NOT found in the scraped locations
+      await this.deactivateDeletedLocations(scrapeRunId, toDeactivate);
 
-    // 5.2 Update - records that are in the scraped locations
-    await this.updateExistingRecords(scrapeRunId, toUpdate);
+      // 5.2 Update - records that are in the scraped locations
+      await this.updateExistingRecords(scrapeRunId, toUpdate);
 
-    // 5.3 Insert new scraped locations
-    await this.insertNewLocations(toInsert);
+      // 5.3 Insert new scraped locations
+      await this.insertNewLocations(toInsert);
 
-    // 6. END finalise scrapeRun
-    await this.finaliseScrapeRun(scrapeRun);
+      // 6. END finalise scrapeRun
+      await this.finaliseScrapeRun(scrapeRun);
 
-    return { scrapeRun, toInsert, toUpdate, toDeactivate, reconciliationMap };
+      return { scrapeRun, toInsert, toUpdate, toDeactivate, reconciliationMap };
+    } catch (error) {
+      console.error(error);
+      // Finalise failed scrape run
+      scrapeRun.runResult = 'FAIL';
+      await this.finaliseScrapeRun(scrapeRun);
+      throw error;
+    }
   }
 
   async initialiseScrapeRun(): Promise<ScrapeRun> {
@@ -133,11 +145,12 @@ export class RunScrapeAndSaveResultsUseCase {
       //  find records to be deactivated
       val.existingLocations.forEach((loc: MobileSpeedCameraLocationDb) => {
         const key = this.cameraLocationTableManager.getBusinessKeyDb(loc);
-        const foundScraped: MobileSpeedCameraLocationInsertDb | undefined = val.scrapedLocations
-          .find((s) => this.cameraLocationTableManager.getBusinessKeyDb(s) === key);
+        const foundScraped: MobileSpeedCameraLocationInsertDb | undefined =
+          val.scrapedLocations.find((s) => this.cameraLocationTableManager.getBusinessKeyDb(s) === key);
 
         if (!foundScraped) {
-          toDeactivate.push();
+          // should deactivate existing location
+          toDeactivate.push(loc);
         }
       });
 
@@ -227,7 +240,7 @@ export class RunScrapeAndSaveResultsUseCase {
 
   async finaliseScrapeRun(scrapeRun: ScrapeRun) {
     scrapeRun.runEnd = DateTime.utc().toISO();
-    scrapeRun.runResult = 'SUCCESS';
+    scrapeRun.runResult = scrapeRun.runResult ?? 'SUCCESS';
 
     const result = await this.scrapeRunTableManager.updateScrapeRun(DataMappingService.scrapeRunBeToDb(scrapeRun));
     if (result?.error) {
