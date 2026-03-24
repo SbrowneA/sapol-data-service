@@ -52,6 +52,8 @@ const envSchema = z.object({
   PORT: z.coerce.number().positive().default(3000),
   CORS_ORIGINS: z.string().transform(commaStringToArray).pipe(z.string().array()),
   REQUEST_TIMEOUT: z.coerce.number().default(60_000),
+  RATE_LIMIT_REQUESTS: z.coerce.number().default(100),
+  RATE_LIMIT_WINDOW_MS: z.coerce.number().default(300_000),
   // DB - Supabse
   NEXT_PUBLIC_SUPABASE_URL: z.string().startsWith('https://').endsWith('supabase.co'),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(10),

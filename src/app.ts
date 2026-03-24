@@ -1,17 +1,26 @@
 import express from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
-import morgan from 'morgan';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
-import { env, isTest } from '../env.ts';
+import cors from 'cors';
+import rateLimit from 'express-rate-limit';
+import helmet from 'helmet';
+import morgan from 'morgan';
+
+import { env, isLocal, isTest } from '../env.ts';
 
 const app = express();
 
 /**
  * Set-up global middleware
  */
+app.use(rateLimit({
+  windowMs: env.RATE_LIMIT_WINDOW_MS,
+  // requests per IP
+  limit: () => env.RATE_LIMIT_REQUESTS,
+  skip: () => (isLocal || isTest)
+}));
+
 app.use(helmet());
 app.use(cors({ origin: env.CORS_ORIGINS }));
 // Parse Request body to JSON object
