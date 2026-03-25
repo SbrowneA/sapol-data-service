@@ -15,7 +15,9 @@
   "type": "module",
   "main": "server.ts",
   "scripts": {
-    "test": "test",
+    "test": "vitest run",
+    "test:unit": "vitest run",
+    "test:watch": "vitest",
     "run-local": "npm run lint && node --watch src/server.ts",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
@@ -48,6 +50,7 @@
     "eslint-config-google": "^0.14.0",
     "globals": "^17.4.0",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.57.1"
+    "typescript-eslint": "^8.57.1",
+    "vitest": "^3.2.4"
   }
 }

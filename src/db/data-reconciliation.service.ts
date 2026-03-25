@@ -21,6 +21,7 @@ export class MobileSpeedCameraLocationReconciliationService {
   static generateReconciliationMap(scrapedLocations: MobileSpeedCameraLocationInsertDb[]): ReconciliationMap {
     const reconciliationMap = new Map<string, LocationReconciliationQueryGroup>();
 
+    // Groups each scraped location by key of "REGION|START-DATE|END-DATE"
     scrapedLocations.forEach((location) => {
       const key = `${location.region_type}|${location.start_date}|${location.end_date}`;
 
