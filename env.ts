@@ -2,22 +2,43 @@
 import { env as loadEnv } from 'custom-env';
 import { z } from 'zod';
 
+/**
+ * APP_STAGE is the app's source-of-truth deployment stage.
+ *
+ * NODE_ENV is left as the conventional Node/runtime flag for framework and
+ * library behaviour. To avoid requiring operators to set both, derive NODE_ENV
+ * from APP_STAGE only when it is not provided explicitly.
+ *
+ * Local runs may use `.env.*` files. Hosted environments should inject
+ * variables directly and must not depend on env files being present on disk.
+ */
 process.env.APP_STAGE = process.env.APP_STAGE || 'local';
+process.env.NODE_ENV = process.env.NODE_ENV || (
+  process.env.APP_STAGE === 'prod' ? 'production' :
+    process.env.APP_STAGE === 'test' ? 'test' :
+      'development'
+);
 
+// APP_STAGE selects which env file to load and which app-only behaviours apply.
 const isProduction = process.env.APP_STAGE === 'prod';
 const isDevelop = process.env.APP_STAGE === 'dev';
 const isTesting = process.env.APP_STAGE === 'test';
 const isLocalEnv = process.env.APP_STAGE === 'local';
 
-// Assign variables for specified
-if (isDevelop) {
-  loadEnv();
-} else if (isLocalEnv) {
-  loadEnv('local');
-} else if (isTesting) {
-  loadEnv('test');
+const shouldLoadEnvFile = !process.env.RENDER;
+
+// Only load `.env.*` files outside hosted environments such as Render.
+if (shouldLoadEnvFile) {
+  if (isDevelop) {
+    loadEnv('dev');
+  } else if (isLocalEnv) {
+    loadEnv('local');
+  } else if (isTesting) {
+    loadEnv('test');
+  } else if (isProduction) {
+    loadEnv('prod');
+  }
 }
-// no isProd > variables will be injected by hosting provider
 
 /**
  * Converts a comma-separated string value into an array of strings
@@ -39,35 +60,45 @@ const mockPathSchema = z.object({
 const requestOptionsSchema = z.object({
   path: z.string().startsWith('/'),
   host: z.string(),
-  protocol: z.enum(['https:', 'http:']),
+  protocol: z.enum(['https:']),
 });
 
-// define the env schema
+const apiUrlSchema = z.string().refine((value) => {
+  if (value.startsWith('https://')) {
+    return true;
+  }
+
+  return isLocalEnv && value.startsWith('http://');
+}, {
+  message: 'API_URL must use https unless APP_STAGE is local',
+});
+
+// Environment schema after APP_STAGE/NODE_ENV normalisation.
 const envSchema = z.object({
-  // Environment
-  NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+  // App-specific deployment stage. This is the primary operator-facing flag.
   APP_STAGE: z.enum(['dev', 'test', 'prod', 'local']).default('local'),
+  // Standard Node runtime mode. May be set explicitly in env files, otherwise
+  // it is derived from APP_STAGE during startup.
+  NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   // Server
-  API_URL: z.string().startsWith('http://', 'https://'),
+  API_URL: apiUrlSchema,
+  // how long api responses should be cached by client (seconds)
+  API_CACHE_DURATION_S: z.coerce.number().default(60),
   PORT: z.coerce.number().positive().default(3000),
   CORS_ORIGINS: z.string().transform(commaStringToArray).pipe(z.string().array()),
   REQUEST_TIMEOUT: z.coerce.number().default(60_000),
+  RATE_LIMIT_REQUESTS: z.coerce.number().default(100),
+  RATE_LIMIT_WINDOW_MS: z.coerce.number().default(300_000),
   // DB - Supabse
   NEXT_PUBLIC_SUPABASE_URL: z.string().startsWith('https://').endsWith('supabase.co'),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(10),
   PRIVATE_SUPABASE_NODE_SERVICE_KEY: z.string().min(10),
-  // Test DB
-  TEST_DB_USER: z.string(),
-  TEST_DB_HOST: z.string(),
-  TEST_DB_DATABASE: z.string(),
-  TEST_DB_PASSWORD: z.string(),
-  TEST_DB_PORT: z.coerce.number().positive(),
   // SAPOL
   // JSON object string
   SAPOL_LOCATIONS_REQUEST_OPTS: z.string().transform((str) => JSON.parse(str)).pipe(requestOptionsSchema),
   SAPOL_MOCK_RESPONSE_FILE_PATHS: z.string().transform((str) => JSON.parse(str)).pipe(mockPathSchema),
   // favoring using mock HTML over making reques
-  USE_MOCK_HTML: z.transform((v): boolean => v !== 'false').default(true),
+  USE_MOCK_HTML: z.transform((v): boolean => v !== 'false').default(false),
   SA_TIMEZONE_ID: z.string().includes('/'),
 });
 

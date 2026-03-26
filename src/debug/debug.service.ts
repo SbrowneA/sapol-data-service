@@ -1,6 +1,8 @@
 import path from 'node:path';
 import { writeFile } from 'fs/promises';
 
+import { isLocal } from '../../env.ts';
+
 export class DebugService {
   /**
    * @param data
@@ -8,6 +10,10 @@ export class DebugService {
    * @private
    */
   public static async writeDataForDebug(data: object | string, fileName: string) {
+    if (!isLocal) {
+      return;
+    }
+
     try {
       const filePath = path.join('src/debug', fileName);
       const writeValue = typeof data === 'string' ? data : JSON.stringify(data, null, 2);

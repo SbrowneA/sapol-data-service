@@ -29,24 +29,21 @@ export class SapolScraperService {
    * 3. Save/write MobileSpeedCameraLocations for debugging.
    */
   public async scrapeLocations(scrapeRun: ScrapeRun): Promise<ScrapeRunResults> {
-    let data: MobileSpeedCameraLocationInsert[] = [];
     try {
       // 1. load HTML from SAPOL site
       const html = await this.loadPageHtml();
       await DebugService.writeDataForDebug(html, 'last-scrape.html');
       // 2. Parse html into data
-      data = this.parseHtmlPage(html || '', scrapeRun);
+      const data: MobileSpeedCameraLocationInsert[] = this.parseHtmlPage(html || '', scrapeRun);
       // 2.1 save debug information
       await DebugService.writeDataForDebug(data, 'mobile-cameras.json');
-      // 3. finalise run
-      scrapeRun.runEnd = DateTime.utc().toISO();
+      // 3. update scrape status
       scrapeRun.runResult = 'SUCCESS';
+      return { locations: data, scrapeRun };
     } catch (error) {
       console.error(error);
-      // TODO throw error instead
-      scrapeRun.runResult = 'FAIL';
+      throw error;
     }
-    return { locations: data, scrapeRun };
   }
 
   private generateHeader(host: string, userAgent?: string): {[key: string]: string} {

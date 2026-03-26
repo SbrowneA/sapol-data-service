@@ -17,10 +17,6 @@ const scrapingController = new ScrapingController(db);
 const cameraLocationTableManager = new CameraLocationTableService(db);
 const scrapeRunTableManager = new ScrapeRunTableService(db);
 
-testingRoutes.get('/', (req, res) => {
-  res.json({ message: `main route` });
-});
-
 testingRoutes.get('/scrape-runs', async (req, res) => {
   const results = await scrapeRunTableManager.getAll();
   if (results?.error) {
@@ -33,7 +29,8 @@ testingRoutes.get('/scrape-runs', async (req, res) => {
 });
 
 testingRoutes.post('/scrape-and-save', async (req, res) => {
-  await scrapingController.scrapeAndSaveResults(res);
+  const scrapeResult = await scrapingController.scrapeAndSaveResults();
+  res.json(scrapeResult);
 });
 
 testingRoutes.get('/locations', async (req, res) => {
@@ -60,7 +57,7 @@ testingRoutes.get('/resolved-locations', async (req, res) => {
     if (!startDate || !endDate) {
       res.status(400).json({ error: 'a valid "start_date" and "end_date" are required' });
     }
-    // todo add region filter
+
     const { data, error } = await db.rpc('api_resolved_locations_by_date_range', { q_start_date: startDate, q_end_date: endDate }).limit(10);
     if (data) {
       res.json({ resolved: data });

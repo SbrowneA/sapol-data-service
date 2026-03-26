@@ -1,7 +1,6 @@
-import type { Response } from 'express';
-
 import { SupabaseClient } from '@supabase/supabase-js';
 
+import { AppError } from '../errors/app-error.ts';
 import { RunScrapeAndSaveResultsUseCase } from './run-scrape-and-save.use-case.ts';
 
 export class ScrapingController {
@@ -14,7 +13,7 @@ export class ScrapingController {
     this.db = db;
   }
 
-  async scrapeAndSaveResults(res: Response) {
+  async scrapeAndSaveResults() {
     // TODO check if data has already been saved for date range (if no date check for week (from now/Today)
     // if YES - use saved results (if they are less than 2 days old)
 
@@ -25,10 +24,14 @@ export class ScrapingController {
 
     try {
       const { scrapeRun, toInsert, toUpdate, toDeactivate, reconciliationMap } = await scrapeAndSaveUseCase.execute();
-      res.json({ message: 'queries run', scrapeData: Array.from(reconciliationMap), toDeactivate, toUpdate, toInsert, scrapeRun });
+      return { message: 'queries run', scrapeData: Array.from(reconciliationMap), toDeactivate, toUpdate, toInsert, scrapeRun };
     } catch (error) {
-      console.error('something went wrong', error);
-      res.status(500).json({ message: 'Something went wrong while executing scrape run', error });
+      throw new AppError({
+        statusCode: 500,
+        code: 'SCRAPE_RUN_FAILED',
+        message: 'Something went wrong while executing scrape run',
+        cause: error,
+      });
     }
   }
 }
