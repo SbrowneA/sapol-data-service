@@ -15,7 +15,7 @@
   "type": "module",
   "main": "server.ts",
   "scripts": {
-    "serve-prod": "set \"APP_STAGE=prod\" && node src/server.ts",
+    "serve-prod": "cross-env APP_STAGE=prod node src/server.ts",
     "test": "vitest run",
     "test:unit": "vitest run",
     "test:watch": "vitest",
@@ -47,6 +47,7 @@
     "@types/luxon": "^3.7.1",
     "@types/morgan": "^1.9.10",
     "@types/node": "^24.10.1",
+    "cross-env": "^10.1.0",
     "eslint": "^10.0.3",
     "eslint-config-google": "^0.14.0",
     "globals": "^17.4.0",
