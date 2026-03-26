@@ -2,22 +2,43 @@
 import { env as loadEnv } from 'custom-env';
 import { z } from 'zod';
 
+/**
+ * APP_STAGE is the app's source-of-truth deployment stage.
+ *
+ * NODE_ENV is left as the conventional Node/runtime flag for framework and
+ * library behaviour. To avoid requiring operators to set both, derive NODE_ENV
+ * from APP_STAGE only when it is not provided explicitly.
+ *
+ * Local runs may use `.env.*` files. Hosted environments should inject
+ * variables directly and must not depend on env files being present on disk.
+ */
 process.env.APP_STAGE = process.env.APP_STAGE || 'local';
+process.env.NODE_ENV = process.env.NODE_ENV || (
+  process.env.APP_STAGE === 'prod' ? 'production' :
+    process.env.APP_STAGE === 'test' ? 'test' :
+      'development'
+);
 
+// APP_STAGE selects which env file to load and which app-only behaviours apply.
 const isProduction = process.env.APP_STAGE === 'prod';
 const isDevelop = process.env.APP_STAGE === 'dev';
 const isTesting = process.env.APP_STAGE === 'test';
 const isLocalEnv = process.env.APP_STAGE === 'local';
 
-// Assign variables for specified
-if (isDevelop) {
-  loadEnv();
-} else if (isLocalEnv) {
-  loadEnv('local');
-} else if (isTesting) {
-  loadEnv('test');
+const shouldLoadEnvFile = !process.env.RENDER;
+
+// Only load `.env.*` files outside hosted environments such as Render.
+if (shouldLoadEnvFile) {
+  if (isDevelop) {
+    loadEnv('dev');
+  } else if (isLocalEnv) {
+    loadEnv('local');
+  } else if (isTesting) {
+    loadEnv('test');
+  } else if (isProduction) {
+    loadEnv('prod');
+  }
 }
-// no isProd > variables will be injected by hosting provider
 
 /**
  * Converts a comma-separated string value into an array of strings
@@ -52,11 +73,13 @@ const apiUrlSchema = z.string().refine((value) => {
   message: 'API_URL must use https unless APP_STAGE is local',
 });
 
-// define the env schema
+// Environment schema after APP_STAGE/NODE_ENV normalisation.
 const envSchema = z.object({
-  // Environment
-  NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+  // App-specific deployment stage. This is the primary operator-facing flag.
   APP_STAGE: z.enum(['dev', 'test', 'prod', 'local']).default('local'),
+  // Standard Node runtime mode. May be set explicitly in env files, otherwise
+  // it is derived from APP_STAGE during startup.
+  NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   // Server
   API_URL: apiUrlSchema,
   // how long api responses should be cached by client (seconds)
