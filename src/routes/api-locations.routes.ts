@@ -19,7 +19,7 @@ apiLocationsRoutes.get('/', async (req, res) => {
     throw new DatabaseError('Database connection unavailable');
   }
 
-  // 2 min cache
+  // client side cache
   res.set('Cache-Control', `public, max-age=${env.API_CACHE_DURATION_S}`);
 
   const queryParams = {
