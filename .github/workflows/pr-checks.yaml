@@ -1,0 +1,55 @@
+name: PR Checks
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - main
+
+jobs:
+  should-run:
+    name: Should run PR checks
+    runs-on: ubuntu-latest
+    # Runs PR checks on following cases:
+    # feature/ -> develop
+    # hotfix/ -> main
+      # Skip if targeting main and source is not a hotfix branch (avoiding redundant checks on develop)
+    if: github.base_ref == 'develop' || startsWith(github.head_ref, 'hotfix/')
+    steps:
+      - run: echo "Checks will run on '${{ github.head_ref }}'"
+
+  code-quality-and-test:
+    name: Code quality checks and unit tests
+    needs: should-run
+    runs-on: ubuntu-latest
+    env:
+      APP_STAGE: prod
+      CORS_ORIGINS: test
+      API_URL: https://test
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.TEST_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: 12345678901
+      PRIVATE_SUPABASE_NODE_SERVICE_KEY: 7891011121314151617
+      SAPOL_LOCATIONS_REQUEST_OPTS: ${{ vars.TEST_SAPOL_LOCATIONS_REQUEST_OPTS }}
+      SAPOL_MOCK_RESPONSE_FILE_PATHS: ${{ vars.TEST_SAPOL_MOCK_RESPONSE_FILE_PATHS }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run type check
+        run: npx tsc --noEmit
+
+      - name: Run lint
+        run: npm run lint
+
+      - name: Run tests
+        run: npm test

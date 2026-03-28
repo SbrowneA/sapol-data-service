@@ -1,0 +1,17 @@
+name: Protect Main
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  check-source-branch:
+    name: Verify Source Branch is 'develop' or 'hotfix/'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail if not from develop or hotfix/
+        if: github.head_ref != 'develop' && !startsWith(github.head_ref, 'hotfix/') && github.event_name == 'pull_request'
+        run: |
+          echo "PRs to main must come from the 'develop' or a 'hotfix/' branch (got: '${{ github.head_ref }}')"
+          exit 1
