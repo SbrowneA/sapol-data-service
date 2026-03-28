@@ -10,6 +10,15 @@ jobs:
   test:
     name: Run Tests
     runs-on: ubuntu-latest
+    env:
+      APP_STAGE: prod
+      CORS_ORIGINS: test
+      API_URL: https://test
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.TEST_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: 12345678901
+      PRIVATE_SUPABASE_NODE_SERVICE_KEY: 7891011121314151617
+      SAPOL_LOCATIONS_REQUEST_OPTS: ${{ vars.TEST_SAPOL_LOCATIONS_REQUEST_OPTS }}
+      SAPOL_MOCK_RESPONSE_FILE_PATHS: ${{ vars.TEST_SAPOL_MOCK_RESPONSE_FILE_PATHS }}
 
     steps:
       - name: Checkout code
