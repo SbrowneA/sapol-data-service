@@ -99,7 +99,6 @@ const envSchema = z.object({
   SAPOL_MOCK_RESPONSE_FILE_PATHS: z.string().transform((str) => JSON.parse(str)).pipe(mockPathSchema),
   // favoring using mock HTML over making reques
   USE_MOCK_HTML: z.transform((v): boolean => v !== 'false').default(false),
-  SA_TIMEZONE_ID: z.string().includes('/'),
 });
 
 // Type for the validated environment

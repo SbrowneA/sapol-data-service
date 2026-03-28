@@ -10,6 +10,14 @@ jobs:
   test:
     name: Run Tests
     runs-on: ubuntu-latest
+    env:
+      APP_STAGE: prod
+      CORS_ORIGINS: test
+      API_URL: https://test
+      NEXT_PUBLIC_SUPABASE_URL: https://something
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: 123
+      PRIVATE_SUPABASE_NODE_SERVICE_KEY: 789
+      SA_TIMEZONE_ID: 'some/region'
 
     steps:
       - name: Checkout code
