@@ -7,8 +7,20 @@ on:
       - main
 
 jobs:
-  test:
-    name: Run Tests
+  should-run:
+    name: Should run PR checks
+    runs-on: ubuntu-latest
+    # Runs PR checks on following cases:
+    # feature/ -> develop
+    # hotfix/ -> main
+      # Skip if targeting main and source is not a hotfix branch (avoiding redundant checks on develop)
+    if: github.base_ref == 'develop' || startsWith(github.head_ref, 'hotfix/')
+    steps:
+      - run: echo "Checks will run on '${{ github.head_ref }}'"
+
+  code-quality-and-test:
+    name: Code quality checks and unit tests
+    needs: should-run
     runs-on: ubuntu-latest
     env:
       APP_STAGE: prod
@@ -24,34 +36,20 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 24
-          cache: "npm"
+          node-version: 20
+          cache: 'npm'
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Run tests
-        run: npm test
-
-  lint:
-    name: Run Lint
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: "npm"
-
-      - name: Install dependencies
-        run: npm ci
+      - name: Run type check
+        run: npx tsc --noEmit
 
       - name: Run lint
         run: npm run lint
+
+      - name: Run tests
+        run: npm test

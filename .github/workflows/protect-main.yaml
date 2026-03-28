@@ -4,9 +4,6 @@ on:
   pull_request:
     branches:
       - main
-  push:
-    branches:
-      - main
 
 jobs:
   check-source-branch:
@@ -17,10 +14,4 @@ jobs:
         if: github.head_ref != 'develop' && !startsWith(github.head_ref, 'hotfix/') && github.event_name == 'pull_request'
         run: |
           echo "PRs to main must come from the 'develop' or a 'hotfix/' branch (got: '${{ github.head_ref }}')"
-          exit 1
-
-      - name: Fail if push is not from develop
-        if: github.event_name == 'push'  && github.ref == 'refs/heads/main'
-        run: |
-          echo "Direct pushes to main are not allowed. Please merge from develop."
           exit 1
