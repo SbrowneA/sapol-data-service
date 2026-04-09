@@ -22,7 +22,17 @@ app.use(rateLimit({
 }));
 
 app.use(helmet());
-app.use(cors({ origin: env.CORS_ORIGINS }));
+app.use(cors({
+  // Check request origin is listed in allowed origins (or no origin for postman and some mobile requests)
+  origin: (origin: string | undefined, callback) => {
+    if (!origin || env.CORS_ORIGINS.includes(origin)) {
+      callback(null, true);
+      return;
+    }
+    callback(new Error('CORS Not Allowed'));
+  },
+  methods: ['GET', 'POST']
+}));
 // Parse Request body to JSON object
 app.use(express.json());
 // Helps handle query strings
