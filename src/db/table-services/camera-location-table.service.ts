@@ -9,7 +9,8 @@ import { type SupabaseQuery } from '../sapol-db.service.ts';
 import { GenericTableService } from './generic-table.service.ts';
 
 
-export class CameraLocationTableService extends GenericTableService<MobileSpeedCameraLocationDb, MobileSpeedCameraLocationInsertDb> {
+export class CameraLocationTableService extends
+  GenericTableService<MobileSpeedCameraLocationDb, MobileSpeedCameraLocationInsertDb> {
   constructor(db: SupabaseClient | null) {
     super(
       'mobile_speed_camera_location',
