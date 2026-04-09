@@ -11,7 +11,7 @@ export interface SupaTableService<T extends Record<string, unknown>, I extends R
   idFieldName: IdFieldType;
   db: SupabaseClient | null;
 
-  insertRow?: (item: I) => any;
+  insertRow?: (item: I) => SupabaseQuery<T>;
   updateRow?: (item: T, itemId: IdFieldType) => SupabaseQuery<T>;
   // Bulk queries
   insertRows: (item: I[]) => SupabaseQuery<T>;
@@ -26,7 +26,9 @@ export interface SupaTableService<T extends Record<string, unknown>, I extends R
 /**
  * Generic implementation of SupaTableService with crud operations
  */
-export class GenericTableService<T extends Record<string, unknown>, I extends Record<string, unknown>> implements SupaTableService<T, I> {
+export class GenericTableService<
+  T extends Record<string, unknown>,
+  I extends Record<string, unknown>> implements SupaTableService<T, I> {
   tableName: string;
   idFieldName;
   db: SupabaseClient;
