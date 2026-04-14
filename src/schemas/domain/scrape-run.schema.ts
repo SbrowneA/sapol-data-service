@@ -1,8 +1,7 @@
 import { z } from 'zod';
 
 import { IsoDateTimeWithOffset } from './iso-with-offset.schema.ts';
-
-export const ScrapeResultEnum = z.enum(['SUCCESS', 'FAIL', 'PENDING']);
+import { RunResultEnum } from './run-result.enum.ts';
 
 export type ScrapeRunResult = z.infer<typeof ScrapeRunSchema>;
 
@@ -12,11 +11,11 @@ export const ScrapeRunSchema = z.object({
   runEnd: IsoDateTimeWithOffset.nullable(),
   createdAt: IsoDateTimeWithOffset,
   updatedAt: IsoDateTimeWithOffset.nullable(),
-  runResult: ScrapeResultEnum
+  runResult: RunResultEnum
 });
 
 export type ScrapeRun = z.infer<typeof ScrapeRunSchema>;
 export const ScrapeRunInsertSchema =
-  ScrapeRunSchema.omit({ scrapeRunId: true, runEnd: true, createAt: true, updatedAt: true });
+  ScrapeRunSchema.omit({ scrapeRunId: true, runEnd: true, createdAt: true, updatedAt: true });
 
 export type ScrapeRunInsert = z.infer<typeof ScrapeRunInsertSchema>;
