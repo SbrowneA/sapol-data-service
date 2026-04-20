@@ -6,7 +6,8 @@ import {
   type LocationResolutionRunInsertDb
 } from '../../schemas/db/location-resolution-run-db.schema.ts';
 
-export class LocationResolutionRunTableService extends GenericTableService<LocationResolutionRunDb, LocationResolutionRunInsertDb> {
+export class LocationResolutionRunTableService extends
+  GenericTableService<LocationResolutionRunDb, LocationResolutionRunInsertDb> {
   constructor(db: SupabaseClient) {
     super(
       'location_resolution_run',

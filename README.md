@@ -4,7 +4,7 @@ A service for data analysis and visualisation of data published by SA Police.
 
 ## Features:
 
-* [Mobile Speed Camera Locations (P.O.C.)](#mobile-speed-camera-locations-poc)
+* [Mobile Speed Camera Locations](#mobile-speed-camera-locations)
 
 ## Technologies
 
@@ -40,9 +40,7 @@ Examples:
 - Local: `APP_STAGE=local`
 - Production: `APP_STAGE=prod`
 
-## Mobile Speed Camera Locations (P.O.C.)
-As of now, proof-of-concept that scrapes mobile speed camera locations from SAPOL, and uses OSM data to resolve them
-geospatially for display on a map.
+## Mobile Speed Camera Locations
+View it live on ([sapol-web-app](https://github.com/SbrowneA/sapol-web-app))
 
-![Demo of map with higligted streets](/assets/streets-poc.gif)
-_Demo of poof-of-concept_
+![Demo of map with higligted streets and suburbs](/assets/streets-live.gif)
