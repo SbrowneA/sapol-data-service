@@ -6,7 +6,8 @@ import type {
   ResolvedCameraLocationInsertDb
 } from '../../schemas/db/resolved-camera-location-db.schema.ts';
 
-export class ResolvedCameraLocationTableService extends GenericTableService<ResolvedCameraLocationDb, ResolvedCameraLocationInsertDb> {
+export class ResolvedCameraLocationTableService extends
+  GenericTableService<ResolvedCameraLocationDb, ResolvedCameraLocationInsertDb> {
   constructor(db: SupabaseClient) {
     super(
       'resolved_camera_location',
