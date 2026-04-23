@@ -283,6 +283,10 @@ export class SapolScraperService {
   }
 }
 
+/**
+ * Common methods used for initialisation of data
+ * TODO find a home
+ */
 export class SapolDataService {
   // TODO find a home
   static generateGenericRun(): ScrapeRunInsertDb | LocationResolutionRunInsertDb {

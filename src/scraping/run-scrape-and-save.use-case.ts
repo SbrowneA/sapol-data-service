@@ -101,7 +101,7 @@ export class RunScrapeAndSaveResultsUseCase {
 
   async initialiseScrapeRun(): Promise<ScrapeRun> {
     const result =
-      await this.scrapeRunTableManager.insertScrapeRun(SapolDataService.generateGenericRun());
+      await this.scrapeRunTableManager.insertRows([SapolDataService.generateGenericRun()]);
 
     if (result?.error) {
       console.error('ERROR: Failed initialising scrape run');
@@ -242,7 +242,7 @@ export class RunScrapeAndSaveResultsUseCase {
     scrapeRun.runEnd = DateTime.utc().toISO();
     scrapeRun.runResult = scrapeRun.runResult ?? 'SUCCESS';
 
-    const result = await this.scrapeRunTableManager.updateScrapeRun(DataMappingService.scrapeRunBeToDb(scrapeRun));
+    const result = await this.scrapeRunTableManager.updateRow(DataMappingService.scrapeRunBeToDb(scrapeRun));
     if (result?.error) {
       console.error('ERROR: Could not finalise successful scrape run', result.error);
       throw result.error;
