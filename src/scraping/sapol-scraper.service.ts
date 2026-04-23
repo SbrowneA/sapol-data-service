@@ -20,6 +20,8 @@ import { type ScrapeRunInsertDb } from '../schemas/db/scrape-run-db.schema.ts';
 import { DebugService } from '../debug/debug.service.ts';
 import { type LocationResolutionRunInsertDb } from '../schemas/db/location-resolution-run-db.schema.ts';
 import { type ScrapeRunResults } from './run-scrape-and-save.types.ts';
+import { type CanonisationRunInsertDb } from '../schemas/db/canonisation-run-db.schema.ts';
+import { type CameraPipelineRunDb } from '../schemas/db/camera-pipeline-run-db.schema.ts';
 
 export class SapolScraperService {
   shortDateFormat = 'yyyy-MM-dd';
@@ -48,7 +50,7 @@ export class SapolScraperService {
     }
   }
 
-  private generateHeader(host: string, userAgent?: string): {[key: string]: string} {
+  private generateHeader(host: string, userAgent?: string): { [key: string]: string } {
     // TODO:
     //  1. store header in Supabse Storage or env file
     //  2. Set up automatic header re-generation - in case request fails
@@ -288,11 +290,12 @@ export class SapolScraperService {
  * TODO find a home
  */
 export class SapolDataService {
-  // TODO find a home
-  static generateGenericRun(): ScrapeRunInsertDb | LocationResolutionRunInsertDb {
+  // TODO create generic run type
+  static generateGenericRun(): ScrapeRunInsertDb | LocationResolutionRunInsertDb | CanonisationRunInsertDb | CameraPipelineRunDb {
     return {
       run_start: DateTime.utc().toISO(),
-      run_result: 'PENDING'
+      run_result: 'PENDING',
+      meta: {}
     };
   }
 }

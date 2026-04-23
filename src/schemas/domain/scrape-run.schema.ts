@@ -11,7 +11,8 @@ export const ScrapeRunSchema = z.object({
   runEnd: IsoDateTimeWithOffset.nullable(),
   createdAt: IsoDateTimeWithOffset,
   updatedAt: IsoDateTimeWithOffset.nullable(),
-  runResult: RunResultEnum
+  runResult: RunResultEnum,
+  meta: z.object({}).loose()
 });
 
 export type ScrapeRun = z.infer<typeof ScrapeRunSchema>;

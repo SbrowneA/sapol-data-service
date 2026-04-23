@@ -9,7 +9,8 @@ export const ScrapeRunDbSchema = z.object({
   run_end: IsoDateTimeWithOffset,
   run_result: RunResultEnum,
   created_at: IsoDateTimeWithOffset,
-  updated_at: IsoDateTimeWithOffset.nullable()
+  updated_at: IsoDateTimeWithOffset.nullable(),
+  meta: z.object({}).loose()
 });
 export const ScrapeRunSchemaInsertDb = ScrapeRunDbSchema
   .omit({ scrape_run_id: true, created_at: true, updated_at: true, run_end: true });

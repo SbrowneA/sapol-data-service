@@ -11,7 +11,8 @@ export const CanonisationRunDbSchema = z.object({
   run_end: IsoDateTimeWithOffset,
   // row/record timestamps
   created_at: IsoDateTimeWithOffset,
-  updated_at: IsoDateTimeWithOffset.nullable()
+  updated_at: IsoDateTimeWithOffset.nullable(),
+  meta: z.object({}).loose()
 });
 
 export type CanonisationRunDb = z.infer<typeof CanonisationRunDbSchema>;
