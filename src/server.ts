@@ -5,6 +5,7 @@ import { errorHandler } from './middleware/error-handler.ts';
 import { notFoundHandler } from './middleware/not-found.ts';
 import apiLocationsRoutes from './routes/api-locations.routes.ts';
 import testingRoutes from './routes/testing-routes.ts';
+import pipelineRoutes from './routes/pipelines.ts';
 import { env, isLocal } from '../env.ts';
 
 app.get('/health', (req: Request, res: Response) => {
@@ -16,6 +17,7 @@ if (isLocal) {
   app.use('/test', testingRoutes);
 }
 app.use('/api/camera-locations', apiLocationsRoutes);
+app.use('/jobs', pipelineRoutes);
 
 app.get('/', (req: Request, res: Response) => {
   res.redirect(302, '/health');
