@@ -22,6 +22,8 @@ import { type LocationResolutionRunInsertDb } from '../schemas/db/location-resol
 import { type ScrapeRunResults } from './run-scrape-and-save.types.ts';
 
 export class SapolScraperService {
+  shortDateFormat = 'yyyy-MM-dd';
+
   /**
    * Main method to:
    * 1. Load HTML from SAPOL page
@@ -185,21 +187,22 @@ export class SapolScraperService {
     const locationsMap: Map<string, MobileSpeedCameraLocationInsert> = new Map();
 
     elements.each((i, el) => {
+      const sapolShortDateFormat = 'dd/MM/yyyy';
       let startDate: string;
-      let endDate: string;
+      let endDate: string | null;
       // only add locations that showlist to avoid duplicates
       const cssClass = this.getAttributeValue(el, 'class');
       if (cssClass.includes('showlist')) {
         if (regionType === 'METRO') {
           const date = this.getAttributeValue(el, 'data-value');
-          const formattedDate = DateTime.fromFormat(date, 'dd/MM/yyyy').toFormat('yyyy-MM-dd');
+          const formattedDate = DateTime.fromFormat(date, sapolShortDateFormat).toFormat(this.shortDateFormat);
           startDate = formattedDate;
           endDate = formattedDate;
         } else {
-          const dateStart = this.getAttributeValue(el, 'datestart');
-          startDate = DateTime.fromFormat(dateStart, 'dd/MM/yyyy').toFormat('yyyy-MM-dd');
-          const dateEnd = this.getAttributeValue(el, 'dateend');
-          endDate = DateTime.fromFormat(dateEnd, 'dd/MM/yyyy').toFormat('yyyy-MM-dd');
+          const startVal = this.getAttributeValue(el, 'datestart');
+          startDate = this.safeParseSapolDate(startVal).toFormat(this.shortDateFormat);
+          const endVal = this.getAttributeValue(el, 'dateend');
+          endDate = this.safeParseSapolDate(endVal).toFormat(this.shortDateFormat);
         }
         let locationText = this.getTextNodeValue(el);
         locationText = locationText.replace(/\s*\r?\n\s*/g, ' ').trim();
@@ -238,6 +241,31 @@ export class SapolScraperService {
     });
 
     return Array.from(locationsMap.values());
+  }
+
+  /**
+   * Accounting for incorrectly formatted dates values in SAPOL site
+   */
+  safeParseSapolDate(value: string): DateTime {
+    const sapolShortDateFormat = 'dd/MM/yyyy';
+    const expectedDate = DateTime.fromFormat(value, sapolShortDateFormat);
+    if (expectedDate.isValid) {
+      return expectedDate;
+    }
+
+    const splitDate = value.split('/');
+    if (splitDate.length > 3) {
+      // EDGE CASE: date is invalid format
+      // 03/05/04/2026 -(should be)-> 03/05/2026
+      const day = splitDate[0];
+      const month = splitDate[1];
+      // get last element for year and ignore in-between values
+      const year = splitDate[splitDate.length - 1];
+      return DateTime.fromFormat(`${day}/${month}/${year}`, sapolShortDateFormat);
+    } else {
+      // can't handle this date... Figure it out SAPOL
+      return DateTime.invalid('Invalid Date');
+    }
   }
 
   private getAttributeValue(element: Element, attributeName: string): string {
