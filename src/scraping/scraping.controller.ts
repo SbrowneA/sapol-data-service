@@ -14,12 +14,6 @@ export class ScrapingController {
   }
 
   async scrapeAndSaveResults() {
-    // TODO check if data has already been saved for date range (if no date check for week (from now/Today)
-    // if YES - use saved results (if they are less than 2 days old)
-
-    // if NO -
-    // ELSE - load html from SAPOL site
-
     const scrapeAndSaveUseCase = new RunScrapeAndSaveResultsUseCase(this.db);
 
     try {

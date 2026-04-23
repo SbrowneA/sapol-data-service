@@ -70,8 +70,6 @@ export class CameraLocationPipelineService {
       // 3.2
       const canonisationRunResult: PostgrestMaybeSingleResponse<CanonisationRunDb> = await this.canoniseNewCameraLocations();
       if (canonisationRunResult?.error) {
-        // fixme remove
-        // console.error('ERROR: Failed canonisation run');
         const dbError = canonisationRunResult?.error;
         throw new DatabaseError('ERROR: Failed canonisation run',
           { hint: dbError?.hint, code: dbError?.code }, dbError);
@@ -80,16 +78,11 @@ export class CameraLocationPipelineService {
         throw new Error('Something went wrong in the canonisation run');
       }
       canonisationRun = canonisationRunResult.data as CanonisationRunDb;
-
-      // fixme remove
-      // console.log('canonisation run', canonisationRunResult);
-      // await DebugService.writeDataForDebug(canonisationRun, 'canonisation-run.json');
+      await DebugService.writeDataForDebug(canonisationRun, 'canonisation-run.json');
 
       // 4. Resolve locations (SQL function)
       const resolutionRunResult: PostgrestMaybeSingleResponse<LocationResolutionRunDb> = await this.resolveNewCameraLocations();
       if (resolutionRunResult?.error) {
-        // fixme remove
-        // console.error('ERROR: Failed resolution run');
         const dbError = resolutionRunResult?.error;
         throw new DatabaseError('ERROR: Failed resolution run',
           { hint: dbError?.hint, code: dbError?.code }, dbError);
@@ -99,8 +92,6 @@ export class CameraLocationPipelineService {
       }
 
       resolutionRun = resolutionRunResult.data as LocationResolutionRunDb;
-      // fixme remove
-      // console.log('resolution run', resolutionRunResult?.data);
       await DebugService.writeDataForDebug(resolutionRun, 'resolution-run.json');
     } catch (err) {
       // 5. Finalize FAILED pipeline

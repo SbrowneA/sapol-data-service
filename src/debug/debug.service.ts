@@ -15,7 +15,7 @@ export class DebugService {
     }
 
     try {
-      const filePath = path.join('src/debug', fileName);
+      const filePath = path.join('src/debug/out', fileName);
       const writeValue = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
       await writeFile(filePath, writeValue, { encoding: 'utf8' });
       console.log('Wrote ' + filePath);
