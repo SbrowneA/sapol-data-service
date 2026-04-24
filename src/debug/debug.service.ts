@@ -1,7 +1,7 @@
 import path from 'node:path';
 import { writeFile } from 'fs/promises';
 
-import { isLocal } from '../../env.ts';
+import { env } from '../../env.ts';
 
 export class DebugService {
   /**
@@ -10,7 +10,7 @@ export class DebugService {
    * @private
    */
   public static async writeDataForDebug(data: object | string, fileName: string) {
-    if (!isLocal) {
+    if (!env.IS_LOCAL) {
       return;
     }
 
