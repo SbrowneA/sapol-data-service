@@ -1,0 +1,24 @@
+name: Test Cron Job
+on:
+  workflow_dispatch: # manually trigger
+  schedule:
+    - cron: '*/5 * * * *' # Every 5 mins
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+
+    env:
+      LIVE_API_URL: ${{ secrets.LIVE_API_URL }}
+      API_KEY: ${{ secrets.CRON_API_KEY }}
+
+    steps:
+      - name: Make HTTP request with auth header
+
+        # --max-time : 30-60 second cold start
+        # --fail : will fail on non 2XX responses
+        run: |
+          curl -X GET $LIVE_API_URL \
+            -H "Authorization: Bearer $CRON_API_KEY" \ 
+            --max-time 90
+            --fail
