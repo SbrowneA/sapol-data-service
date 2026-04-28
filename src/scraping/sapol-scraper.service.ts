@@ -7,7 +7,6 @@ import { DateTime } from 'luxon';
 import * as cheerio from 'cheerio';
 import { Element } from 'domhandler';
 
-import { env } from '../../env.ts';
 import {
   type MobileSpeedCameraLocationInsert,
   MobileSpeedCameraLocationSchema,
@@ -20,8 +19,15 @@ import { type ScrapeRunInsertDb } from '../schemas/db/scrape-run-db.schema.ts';
 import { DebugService } from '../debug/debug.service.ts';
 import { type LocationResolutionRunInsertDb } from '../schemas/db/location-resolution-run-db.schema.ts';
 import { type ScrapeRunResults } from './run-scrape-and-save.types.ts';
+import { Env } from '../../env.schema.ts';
 
 export class SapolScraperService {
+  private env: Env;
+
+  constructor(env: Env) {
+    this.env = env;
+  }
+
   /**
    * Main method to:
    * 1. Load HTML from SAPOL page
@@ -46,7 +52,7 @@ export class SapolScraperService {
     }
   }
 
-  private generateHeader(host: string, userAgent?: string): {[key: string]: string} {
+  private generateHeader(host: string, userAgent?: string): { [key: string]: string } {
     // TODO:
     //  1. store header in Supabse Storage or env file
     //  2. Set up automatic header re-generation - in case request fails
@@ -102,15 +108,15 @@ export class SapolScraperService {
    * Loads the HTML to be parsed from the SAPOL page.
    */
   private async loadPageHtml() {
-    if (env.USE_MOCK_HTML) {
+    if (this.env.USE_MOCK_HTML) {
       console.log('Using Mock HTML form SAPOL');
       return this.loadPageHtmlMock();
     } else {
       console.log('Making GET request to SAPOL');
       return this.generateHtmlRequest(
-        env.SAPOL_LOCATIONS_REQUEST_OPTS.host,
-        env.SAPOL_LOCATIONS_REQUEST_OPTS.path,
-        env.SAPOL_LOCATIONS_REQUEST_OPTS.protocol
+        this.env.SAPOL_LOCATIONS_REQUEST_OPTS.host,
+        this.env.SAPOL_LOCATIONS_REQUEST_OPTS.path,
+        this.env.SAPOL_LOCATIONS_REQUEST_OPTS.protocol
       );
     }
   }
@@ -124,7 +130,7 @@ export class SapolScraperService {
     try {
       const __filename = fileURLToPath(import.meta.url);
       const __dirname = path.dirname(__filename);
-      const filePath = path.join(__dirname, env.SAPOL_MOCK_RESPONSE_FILE_PATHS.SCRAPED);
+      const filePath = path.join(__dirname, this.env.SAPOL_MOCK_RESPONSE_FILE_PATHS.SCRAPED);
       htmlString = await readFile(filePath, { encoding: 'utf8' });
     } catch (err) {
       console.error(err);
@@ -254,6 +260,9 @@ export class SapolScraperService {
     return '';
   }
 }
+
+export const createSapolScraperService: (env: Env) => SapolScraperService =
+  ((env: Env): SapolScraperService => new SapolScraperService(env));
 
 export class SapolDataService {
   // TODO find a home

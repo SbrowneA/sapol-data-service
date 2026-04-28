@@ -2,7 +2,7 @@ import { SupabaseClient } from '@supabase/supabase-js';
 import { type PostgrestResponse } from '@supabase/postgrest-js';
 import { DateTime } from 'luxon';
 
-import { SapolDataService, SapolScraperService } from './sapol-scraper.service.ts';
+import { createSapolScraperService, SapolDataService, SapolScraperService } from './sapol-scraper.service.ts';
 import { ScrapeRunTableService } from '../db/table-services/scrape-run-table.service.ts';
 import { CameraLocationTableService } from '../db/table-services/camera-location-table.service.ts';
 import {
@@ -17,21 +17,20 @@ import type {
   MobileSpeedCameraLocationDb,
   MobileSpeedCameraLocationInsertDb,
 } from '../schemas/db/mobile-speed-camera-location-db.schema.ts';
+import { Env } from '../../env.schema.ts';
 
 export class RunScrapeAndSaveResultsUseCase {
-  db: SupabaseClient;
   cameraLocationTableManager: CameraLocationTableService;
   scrapeRunTableManager: ScrapeRunTableService;
   sapolScraperService: SapolScraperService;
 
-  constructor(db: SupabaseClient | null) {
+  constructor(db: SupabaseClient | null, env: Env) {
     if (!db) {
       throw new Error('Database is not initialised.');
     }
-    this.db = db;
-    this.scrapeRunTableManager = new ScrapeRunTableService(this.db);
-    this.cameraLocationTableManager = new CameraLocationTableService(this.db);
-    this.sapolScraperService = new SapolScraperService();
+    this.scrapeRunTableManager = new ScrapeRunTableService(db);
+    this.cameraLocationTableManager = new CameraLocationTableService(db);
+    this.sapolScraperService = createSapolScraperService(env);
   }
 
   /**
@@ -250,3 +249,6 @@ export class RunScrapeAndSaveResultsUseCase {
     console.log('SCRAPE RUN COMPLETE', result?.status);
   }
 }
+
+export const createRunScrapeAndSaveResultsUseCase: (db: SupabaseClient, env: Env) => RunScrapeAndSaveResultsUseCase =
+  ((db: SupabaseClient, env: Env) => new RunScrapeAndSaveResultsUseCase(db, env));
