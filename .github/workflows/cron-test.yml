@@ -24,6 +24,6 @@ jobs:
           echo "Calling: $LIVE_API_URL"
         
           curl -X GET "$LIVE_API_URL" \
-            -H "Authorization: Bearer $CRON_API_KEY" \ 
+            -H "Authorization: Bearer $CRON_API_KEY" \
             --max-time 90 \
             --fail
