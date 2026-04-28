@@ -10,7 +10,7 @@ jobs:
 
     env:
       LIVE_API_URL: ${{ secrets.LIVE_API_URL }}
-      API_KEY: ${{ secrets.CRON_API_KEY }}
+      CRON_API_KEY: ${{ secrets.CRON_API_KEY }}
 
     steps:
       - name: Make HTTP request with auth header
@@ -18,7 +18,7 @@ jobs:
         # --max-time : 30-60 second cold start
         # --fail : will fail on non 2XX responses
         run: |
-          curl -X GET $LIVE_API_URL \
+          curl -X GET "$LIVE_API_URL" \
             -H "Authorization: Bearer $CRON_API_KEY" \ 
             --max-time 90
             --fail
