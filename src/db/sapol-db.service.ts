@@ -31,6 +31,11 @@ export class SupaDatabase {
     SupaDatabase.getInstance(supabaseUrl, supabaseKey);
   };
 
+  /**
+   *
+   * @param supabaseUrl public url
+   * @param supabaseKey secret/service key
+   */
   public static getInstance(supabaseUrl: string, supabaseKey: string) {
     if (!SupaDatabase.db) {
       try {
