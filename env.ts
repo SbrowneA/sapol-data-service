@@ -2,7 +2,7 @@
 import { env as loadEnv } from 'custom-env';
 import { z } from 'zod';
 
-import { Env, envSchema } from './env.schema.ts';
+import { type Env, envSchema } from './env.schema.ts';
 
 /**
  * APP_STAGE is the app's source-of-truth deployment stage.

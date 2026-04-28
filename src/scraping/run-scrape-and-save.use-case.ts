@@ -17,7 +17,7 @@ import type {
   MobileSpeedCameraLocationDb,
   MobileSpeedCameraLocationInsertDb,
 } from '../schemas/db/mobile-speed-camera-location-db.schema.ts';
-import { Env } from '../../env.schema.ts';
+import { type Env } from '../../env.schema.ts';
 
 export class RunScrapeAndSaveResultsUseCase {
   cameraLocationTableManager: CameraLocationTableService;

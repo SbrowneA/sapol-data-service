@@ -2,7 +2,7 @@ import { SupabaseClient } from '@supabase/supabase-js';
 
 import { AppError } from '../errors/app-error.ts';
 import { RunScrapeAndSaveResultsUseCase } from './run-scrape-and-save.use-case.ts';
-import { Env } from '../../env.schema.ts';
+import { type Env } from '../../env.schema.ts';
 
 export class ScrapingController {
   private readonly db: SupabaseClient;

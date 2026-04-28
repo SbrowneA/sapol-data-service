@@ -19,7 +19,7 @@ import { type ScrapeRunInsertDb } from '../schemas/db/scrape-run-db.schema.ts';
 import { DebugService } from '../debug/debug.service.ts';
 import { type LocationResolutionRunInsertDb } from '../schemas/db/location-resolution-run-db.schema.ts';
 import { type ScrapeRunResults } from './run-scrape-and-save.types.ts';
-import { Env } from '../../env.schema.ts';
+import { type Env } from '../../env.schema.ts';
 
 export class SapolScraperService {
   private env: Env;
