@@ -6,7 +6,7 @@ import { notFoundHandler } from './middleware/not-found.ts';
 import apiLocationsRoutes from './routes/api-locations.routes.ts';
 import testingRoutes from './routes/testing-routes.ts';
 import { env } from '../env.ts';
-import pipelineRoutes from './routes/pipelines.ts';
+import cronRoutes from './routes/cron.routes.ts';
 
 app.get('/health', (req: Request, res: Response) => {
   res.send(`App is running - uptime: ${process.uptime()}s`);
@@ -17,7 +17,7 @@ if (env.IS_LOCAL) {
   app.use('/test', testingRoutes);
 }
 app.use('/api/camera-locations', apiLocationsRoutes);
-app.use('/jobs', pipelineRoutes);
+app.use('/jobs', cronRoutes);
 
 app.get('/', (req: Request, res: Response) => {
   res.redirect(302, '/health');

@@ -1,6 +1,6 @@
-import { Request, Response, NextFunction } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import { env } from '../../env.ts';
-import { RequestMethod } from '../schemas/domain/request-method.enum.ts';
+import { type RequestMethod } from '../schemas/domain/request-method.enum.ts';
 
 /**
  * Validates the cron job request has a valid api key and method is permitted
