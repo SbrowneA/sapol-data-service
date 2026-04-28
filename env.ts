@@ -3,32 +3,15 @@ import { env as loadEnv } from 'custom-env';
 import { z } from 'zod';
 
 import { type Env, envSchema } from './env.schema.ts';
+import { appStage } from './app-stage.ts';
 
-/**
- * APP_STAGE is the app's source-of-truth deployment stage.
- *
- * NODE_ENV is left as the conventional Node/runtime flag for framework and
- * library behaviour. To avoid requiring operators to set both, derive NODE_ENV
- * from APP_STAGE only when it is not provided explicitly.
- *
- * Local runs may use `.env.*` files. Hosted environments should inject
- * variables directly and must not depend on env files being present on disk.
- */
-process.env.APP_STAGE = process.env.APP_STAGE || 'local';
-process.env.NODE_ENV = process.env.NODE_ENV || (
-  process.env.APP_STAGE === 'prod' ? 'production' :
-    process.env.APP_STAGE === 'test' ? 'test' :
-      'development'
-);
 
 // Only load `.env.*` files outside hosted environments such as Render.
 const shouldLoadEnvFile = !process.env.RENDER;
 if (shouldLoadEnvFile) {
   // APP_STAGE selects which env file to load and which app-only behaviours apply.
-  loadEnv(process.env.APP_STAGE);
+  loadEnv(appStage);
 }
-
-// export verified env
 
 let env: Env;
 try {
