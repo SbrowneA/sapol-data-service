@@ -2,7 +2,7 @@ name: Test Cron Job
 on:
   workflow_dispatch: # manually trigger
   schedule:
-    - cron: '*/5 * * * *' # Every 5 mins
+    - cron: '0 */4 * * *' # Every 4 hrs
 
 jobs:
   ping:
@@ -25,5 +25,5 @@ jobs:
         
           curl -X GET "$LIVE_API_URL" \
             -H "Authorization: Bearer $CRON_API_KEY" \
-            --max-time 90 \
+            --max-time 120 \
             --fail
