@@ -12,6 +12,7 @@ import { type SupabaseQuery } from '../db/sapol-db.service.ts';
 import { DatabaseError } from '../errors/app-error.ts';
 import { type ScrapeRun } from '../schemas/domain/scrape-run.schema.ts';
 import { DebugService } from '../debug/debug.service.ts';
+import { type Env } from '../../env.schema.ts';
 
 export class CameraLocationPipelineService {
   db: SupabaseClient;
@@ -19,12 +20,12 @@ export class CameraLocationPipelineService {
   cameraPipelineRunTableService: CameraPipelineRunTableService;
   canonisationRunTableService: CanonisationRunTableService;
 
-  constructor(db: SupabaseClient | null) {
+  constructor(db: SupabaseClient | null, env: Env) {
     if (!db) {
       throw new Error('Database is not initialised.');
     }
     this.db = db;
-    this.scrapeAndSaveUseCase = new RunScrapeAndSaveResultsUseCase(db);
+    this.scrapeAndSaveUseCase = new RunScrapeAndSaveResultsUseCase(db, env);
     this.cameraPipelineRunTableService = new CameraPipelineRunTableService(db);
     this.canonisationRunTableService = new CanonisationRunTableService(db);
   }
