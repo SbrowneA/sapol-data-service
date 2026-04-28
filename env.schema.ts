@@ -1,8 +1,9 @@
 import { z } from 'zod';
+
 import { RequestMethodEnum } from './src/schemas/domain/request-method.enum.ts';
+import { appStage } from './app-stage.ts';
 
-
-const isLocalEnv = process.env.APP_STAGE === 'local';
+const isLocalEnv = appStage === 'local';
 
 /**
  * Converts a comma-separated string value into an array of strings
