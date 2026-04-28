@@ -51,11 +51,15 @@ export const envSchema = z.object({
   API_CACHE_DURATION_S: z.coerce.number().default(60),
   PORT: z.coerce.number().positive().default(3000),
   CORS_ORIGINS: z.string().transform(commaStringToArray).pipe(z.string().array()),
-  CRON_API_KEYS: z.string().transform(commaStringToArray).pipe(z.string().array()),
-  CRON_ALLOWED_METHODS: z.string().transform(commaStringToArray).pipe(RequestMethodEnum.array()),
   REQUEST_TIMEOUT: z.coerce.number().default(60_000),
   RATE_LIMIT_REQUESTS: z.coerce.number().default(100),
   RATE_LIMIT_WINDOW_MS: z.coerce.number().default(300_000),
+
+  // Cron vars
+  CRON_API_KEYS: z.string().transform(commaStringToArray).pipe(z.string().array()),
+  CRON_ALLOWED_METHODS: z.string().transform(commaStringToArray).pipe(RequestMethodEnum.array()),
+  CRON_RATE_LIMIT_REQUESTS: z.coerce.number().default(1),
+  CRON_RATE_LIMIT_WINDOW_MS: z.coerce.number().default(120_000),
   // DB - Supabse
   NEXT_PUBLIC_SUPABASE_URL: z.string().startsWith('https://').endsWith('supabase.co'),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(10),

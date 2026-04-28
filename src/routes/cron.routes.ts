@@ -6,6 +6,7 @@ import { CameraLocationPipelineService } from '../data-pipeline/camera-location-
 import { DatabaseError } from '../errors/app-error.ts';
 import { cronRequireApiKeyHandler } from '../middleware/cron-require-api-key.ts';
 import { env } from '../../env.ts';
+import rateLimit from 'express-rate-limit';
 
 const cronRoutes = Router();
 
@@ -13,7 +14,14 @@ const cronRoutes = Router();
 //  - add current job active lock/check
 cronRoutes.use(cronRequireApiKeyHandler);
 
-cronRoutes.post('/camera-pipeline', async (req, res) => {
+const cronRateLimit = rateLimit({
+  windowMs: env.CRON_RATE_LIMIT_WINDOW_MS,
+  limit: () => env.CRON_RATE_LIMIT_REQUESTS,
+  skip: () => (env.IS_TEST || env.IS_LOCAL),
+  message: 'Too only one request allowed within the cooldown window',
+});
+
+cronRoutes.post('/camera-pipeline', cronRateLimit, async (req, res) => {
   const db: SupabaseClient | null = SupaDatabase.getInstance(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
   if (db) {
     res.status(200).json({
