@@ -5,14 +5,14 @@ import { errorHandler } from './middleware/error-handler.ts';
 import { notFoundHandler } from './middleware/not-found.ts';
 import apiLocationsRoutes from './routes/api-locations.routes.ts';
 import testingRoutes from './routes/testing-routes.ts';
+import { env } from '../env.ts';
 import pipelineRoutes from './routes/pipelines.ts';
-import { env, isLocal } from '../env.ts';
 
 app.get('/health', (req: Request, res: Response) => {
   res.send(`App is running - uptime: ${process.uptime()}s`);
 });
 
-if (isLocal) {
+if (env.IS_LOCAL) {
   // only expose routes if developing locally
   app.use('/test', testingRoutes);
 }

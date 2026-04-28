@@ -7,7 +7,6 @@ import { DateTime } from 'luxon';
 import * as cheerio from 'cheerio';
 import { Element } from 'domhandler';
 
-import { env } from '../../env.ts';
 import {
   type MobileSpeedCameraLocationInsert,
   MobileSpeedCameraLocationSchema,
@@ -20,11 +19,17 @@ import { type ScrapeRunInsertDb } from '../schemas/db/scrape-run-db.schema.ts';
 import { DebugService } from '../debug/debug.service.ts';
 import { type LocationResolutionRunInsertDb } from '../schemas/db/location-resolution-run-db.schema.ts';
 import { type ScrapeRunResults } from './run-scrape-and-save.types.ts';
+import { type Env } from '../../env.schema.ts';
 import { type CanonisationRunInsertDb } from '../schemas/db/canonisation-run-db.schema.ts';
 import { type CameraPipelineRunDb } from '../schemas/db/camera-pipeline-run-db.schema.ts';
 
 export class SapolScraperService {
-  shortDateFormat = 'yyyy-MM-dd';
+  private readonly shortDateFormat = 'yyyy-MM-dd';
+  private env: Env;
+
+  constructor(env: Env) {
+    this.env = env;
+  }
 
   /**
    * Main method to:
@@ -106,15 +111,15 @@ export class SapolScraperService {
    * Loads the HTML to be parsed from the SAPOL page.
    */
   private async loadPageHtml() {
-    if (env.USE_MOCK_HTML) {
+    if (this.env.USE_MOCK_HTML) {
       console.log('Using Mock HTML form SAPOL');
       return this.loadPageHtmlMock();
     } else {
       console.log('Making GET request to SAPOL');
       return this.generateHtmlRequest(
-        env.SAPOL_LOCATIONS_REQUEST_OPTS.host,
-        env.SAPOL_LOCATIONS_REQUEST_OPTS.path,
-        env.SAPOL_LOCATIONS_REQUEST_OPTS.protocol
+        this.env.SAPOL_LOCATIONS_REQUEST_OPTS.host,
+        this.env.SAPOL_LOCATIONS_REQUEST_OPTS.path,
+        this.env.SAPOL_LOCATIONS_REQUEST_OPTS.protocol
       );
     }
   }
@@ -128,7 +133,7 @@ export class SapolScraperService {
     try {
       const __filename = fileURLToPath(import.meta.url);
       const __dirname = path.dirname(__filename);
-      const filePath = path.join(__dirname, env.SAPOL_MOCK_RESPONSE_FILE_PATHS.SCRAPED);
+      const filePath = path.join(__dirname, this.env.SAPOL_MOCK_RESPONSE_FILE_PATHS.SCRAPED);
       htmlString = await readFile(filePath, { encoding: 'utf8' });
     } catch (err) {
       console.error(err);
@@ -284,6 +289,9 @@ export class SapolScraperService {
     return '';
   }
 }
+
+export const createSapolScraperService: (env: Env) => SapolScraperService =
+  ((env: Env): SapolScraperService => new SapolScraperService(env));
 
 /**
  * Common methods used for initialisation of data
