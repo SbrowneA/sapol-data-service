@@ -27,7 +27,7 @@ describe('cronRequireApiKeyHandler', () => {
   });
 
   it('should return 401 error if no auth header is provided', () => {
-    const req = { method: 'POST', headers: { } };
+    const req = { method: 'POST', get: vi.fn() };
 
     const result = cronRequireApiKeyHandler(req as never, res as never, next);
 
@@ -37,7 +37,7 @@ describe('cronRequireApiKeyHandler', () => {
   });
 
   it('should return 401 error if no API key is provided', () => {
-    const req = { method: 'POST', headers: { authorization: `Bearer ${cronTestKey}` } };
+    const req = { method: 'POST', get: vi.fn().mockReturnValue(`Bearer ${cronTestKey}`) };
 
     const result = cronRequireApiKeyHandler(req as never, res as never, next);
 
@@ -47,7 +47,7 @@ describe('cronRequireApiKeyHandler', () => {
   });
 
   it('should return 403 error if the API key is invalid', () => {
-    const req = { method: 'GET', headers: { authorization: 'Bearer invalid-key' } };
+    const req = { method: 'GET', get: vi.fn().mockReturnValue('Bearer invalid-key') };
 
     const result = cronRequireApiKeyHandler(req as never, res as never, next);
 
@@ -57,7 +57,7 @@ describe('cronRequireApiKeyHandler', () => {
   });
 
   it('should call next() if the request is valid', () => {
-    const req = { method: 'GET', headers: { authorization: `Bearer ${cronTestKey}` } };
+    const req = { method: 'GET', get: vi.fn().mockReturnValue(`Bearer ${cronTestKey}`) };
     vi.spyOn(console, 'error');
 
     const result = cronRequireApiKeyHandler(req as never, res as never, next);
