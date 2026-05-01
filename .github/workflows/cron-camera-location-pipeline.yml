@@ -1,0 +1,32 @@
+name: Trigger Job - Camera Location Pipeline
+on:
+  workflow_dispatch: # manually trigger
+  schedule:
+    - cron: '30 14 * * 1,2,3,5' # At 14:30 (UTC) on Monday, Tuesday, Wednesday, and Friday.
+
+jobs:
+  ping:
+    runs-on: ubuntu-slim
+
+    env:
+      URL: ${{ secrets.JOB_URL_CAMERA_PIPELINE }}
+      CRON_API_KEY: ${{ secrets.CRON_API_KEY }}
+
+    steps:
+
+      - name: Request Trigger Camera Location Pipeline
+        # Make HTTP request to job endpoint (with auth header)
+        # set -euo pipefail (prevent malformed url from executing, treat undefined variables as error)
+        # --max-time : accounting for 30~90 second cold start
+        # --fail : will fail on non 2XX responses
+        run: |
+          set -euo pipefail
+
+          echo "Triggering job"
+
+          curl -X POST "$URL" \
+            -H "Authorization: Bearer $CRON_API_KEY" \
+            --max-time 120 \
+            --fail-with-body
+          
+          echo "Job triggered successfully"
