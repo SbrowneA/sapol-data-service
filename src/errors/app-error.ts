@@ -79,3 +79,23 @@ export class DatabaseError extends AppError {
     });
   }
 }
+
+/**
+ * Error for unexpected server failures that should not expose internal details.
+ */
+export class UnexpectedError extends AppError {
+  /**
+   * @param message Safe human-readable server failure message.
+   * @param details Optional safe metadata for the API response.
+   * @param cause Original thrown error or value for logging.
+   */
+  constructor(message = 'Internal server error', details?: Record<string, unknown>, cause?: unknown) {
+    super({
+      statusCode: 500,
+      code: 'INTERNAL_SERVER_ERROR',
+      message,
+      details: details,
+      cause,
+    });
+  }
+}
