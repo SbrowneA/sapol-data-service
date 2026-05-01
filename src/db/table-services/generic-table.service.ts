@@ -11,12 +11,11 @@ export interface SupaTableService<T extends Record<string, unknown>, I extends R
   idFieldName: IdFieldType;
   db: SupabaseClient | null;
 
-  insertRow?: (item: I) => SupabaseQuery<T>;
   updateRow?: (item: T, itemId: IdFieldType) => SupabaseQuery<T>;
   // Bulk queries
   insertRows: (item: I[]) => SupabaseQuery<T>;
   upsertRows: (items: I[]) => SupabaseQuery<T>;
-  removeRows?: (itemIds: IdFieldType[]) => SupabaseQuery<T>;
+  // removeRows?: (itemIds: IdFieldType[]) => SupabaseQuery<T>;
   /**
    * Get all values from the table
    */
@@ -43,20 +42,25 @@ export class GenericTableService<
     this.idFieldName = idField || 'id';
   }
 
+
   /**
-   * Add a new row and return the updated row
+   * Update the specified entity row if the initialised idFieldName is included
    * @param item
    */
-  insertRow(item: I): SupabaseQuery<T> {
-    return (this.db?.from(this.tableName)?.insert(item)?.select() || Promise.resolve(null));
+  updateRow(item: T): SupabaseQuery<T> {
+    if (this.db && item?.[this.idFieldName]) {
+      return this.db.from(this.tableName)
+        .update(item)
+        .eq(this.idFieldName, item[this.idFieldName])
+        .select();
+    }
+    return Promise.resolve(null);
   }
 
   /**
    * Delete the specified row and return the removed row
    * @param itemIds id of item(s) to domain deleted
    */
-  // removeRow(itemIds: string[]): Promise<PostgrestResponse<T> | null> {
-
   // removeRows(itemIds: IdFieldType[]): SupabaseQuery<T> {
   //   removeRows(itemIds: string[]): Promise<T> {
   // const query = itemIds.length > 1
@@ -77,8 +81,8 @@ export class GenericTableService<
   }
 
   /**
-   * Inserts the provided items
-   * May throw errors if attempting to insert an existing record.
+   * Inserts the provided *new* items
+   * May throw errors if attempting to insert an existing record (use upsert or update instead)
    * @param items
    */
   insertRows(items: I[]): SupabaseQuery<T> {

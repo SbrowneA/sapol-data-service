@@ -1,11 +1,13 @@
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { RunScrapeAndSaveResultsUseCase } from './run-scrape-and-save.use-case.ts';
+import { createRunScrapeAndSaveResultsUseCase, RunScrapeAndSaveResultsUseCase } from './run-scrape-and-save.use-case.ts';
 import { type ReconciliationMap } from '../db/data-reconciliation.service.ts';
 import type {
   MobileSpeedCameraLocationDb,
   MobileSpeedCameraLocationInsertDb,
 } from '../schemas/db/mobile-speed-camera-location-db.schema.ts';
+import { mockEnv } from '../testing/mock-env.ts';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 const _makeExistingLocation = (
   id: bigint,
@@ -51,19 +53,20 @@ const _makeScrapedLocation = (
 });
 
 describe('RunScrapeAndSaveResultsUseCase', () => {
+  let useCase: RunScrapeAndSaveResultsUseCase;
+  let supabaseClient: SupabaseClient;
+
+  beforeEach(() => {
+    supabaseClient = createClient(mockEnv.NEXT_PUBLIC_SUPABASE_URL, mockEnv.PRIVATE_SUPABASE_NODE_SERVICE_KEY);
+    useCase = createRunScrapeAndSaveResultsUseCase(supabaseClient, mockEnv);
+  });
+
   describe('compareScrapedWithExistingRecords', () => {
     it('splits locations into insert, update, and deactivate buckets', () => {
-      // Create a bare instance so the test can call the pure comparison method
-      // without constructing the real DB-backed dependencies in the constructor.
-      const useCase = Object.create(RunScrapeAndSaveResultsUseCase.prototype) as RunScrapeAndSaveResultsUseCase;
-
-      (useCase as {
-        cameraLocationTableManager: {
-          getBusinessKeyDb: (location: MobileSpeedCameraLocationDb | MobileSpeedCameraLocationInsertDb) => string;
-        };
-      }).cameraLocationTableManager = {
-        getBusinessKeyDb: (location) => `${location.location}|${location.start_date}|${location.end_date}`,
-      };
+      vi.spyOn(useCase.cameraLocationTableManager, 'getBusinessKeyDb').mockImplementation(
+        (location: MobileSpeedCameraLocationDb | MobileSpeedCameraLocationInsertDb) => {
+          return `${location.location}|${location.start_date}|${location.end_date}`;
+        });
 
       const existingOnly = _makeExistingLocation(1n, 'EXISTING ONLY, ADELAIDE');
       const existingAndScraped = _makeExistingLocation(2n, 'SHARED LOCATION, ADELAIDE');

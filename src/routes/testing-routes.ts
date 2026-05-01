@@ -9,10 +9,11 @@ import { type MobileSpeedCameraLocationDb } from '../schemas/db/mobile-speed-cam
 import { CameraLocationTableService } from '../db/table-services/camera-location-table.service.ts';
 import { ScrapeRunTableService } from '../db/table-services/scrape-run-table.service.ts';
 import { ScrapingController } from '../scraping/scraping.controller.ts';
+import { env } from '../../env.ts';
 
 const testingRoutes = Router();
-const db: SupabaseClient | null = SupaDatabase.getInstance();
-const scrapingController = new ScrapingController(db);
+const db: SupabaseClient | null = SupaDatabase.getInstance(env.NEXT_PUBLIC_SUPABASE_URL, env.PRIVATE_SUPABASE_NODE_SERVICE_KEY);
+const scrapingController = new ScrapingController(db, env);
 
 const cameraLocationTableManager = new CameraLocationTableService(db);
 const scrapeRunTableManager = new ScrapeRunTableService(db);

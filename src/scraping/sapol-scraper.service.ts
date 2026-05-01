@@ -7,7 +7,6 @@ import { DateTime } from 'luxon';
 import * as cheerio from 'cheerio';
 import { Element } from 'domhandler';
 
-import { env } from '../../env.ts';
 import {
   type MobileSpeedCameraLocationInsert,
   MobileSpeedCameraLocationSchema,
@@ -20,8 +19,18 @@ import { type ScrapeRunInsertDb } from '../schemas/db/scrape-run-db.schema.ts';
 import { DebugService } from '../debug/debug.service.ts';
 import { type LocationResolutionRunInsertDb } from '../schemas/db/location-resolution-run-db.schema.ts';
 import { type ScrapeRunResults } from './run-scrape-and-save.types.ts';
+import { type Env } from '../../env.schema.ts';
+import { type CanonisationRunInsertDb } from '../schemas/db/canonisation-run-db.schema.ts';
+import { type CameraPipelineRunDb } from '../schemas/db/camera-pipeline-run-db.schema.ts';
 
 export class SapolScraperService {
+  private readonly shortDateFormat = 'yyyy-MM-dd';
+  private env: Env;
+
+  constructor(env: Env) {
+    this.env = env;
+  }
+
   /**
    * Main method to:
    * 1. Load HTML from SAPOL page
@@ -46,7 +55,7 @@ export class SapolScraperService {
     }
   }
 
-  private generateHeader(host: string, userAgent?: string): {[key: string]: string} {
+  private generateHeader(host: string, userAgent?: string): { [key: string]: string } {
     // TODO:
     //  1. store header in Supabse Storage or env file
     //  2. Set up automatic header re-generation - in case request fails
@@ -102,15 +111,15 @@ export class SapolScraperService {
    * Loads the HTML to be parsed from the SAPOL page.
    */
   private async loadPageHtml() {
-    if (env.USE_MOCK_HTML) {
+    if (this.env.USE_MOCK_HTML) {
       console.log('Using Mock HTML form SAPOL');
       return this.loadPageHtmlMock();
     } else {
       console.log('Making GET request to SAPOL');
       return this.generateHtmlRequest(
-        env.SAPOL_LOCATIONS_REQUEST_OPTS.host,
-        env.SAPOL_LOCATIONS_REQUEST_OPTS.path,
-        env.SAPOL_LOCATIONS_REQUEST_OPTS.protocol
+        this.env.SAPOL_LOCATIONS_REQUEST_OPTS.host,
+        this.env.SAPOL_LOCATIONS_REQUEST_OPTS.path,
+        this.env.SAPOL_LOCATIONS_REQUEST_OPTS.protocol
       );
     }
   }
@@ -124,7 +133,7 @@ export class SapolScraperService {
     try {
       const __filename = fileURLToPath(import.meta.url);
       const __dirname = path.dirname(__filename);
-      const filePath = path.join(__dirname, env.SAPOL_MOCK_RESPONSE_FILE_PATHS.SCRAPED);
+      const filePath = path.join(__dirname, this.env.SAPOL_MOCK_RESPONSE_FILE_PATHS.SCRAPED);
       htmlString = await readFile(filePath, { encoding: 'utf8' });
     } catch (err) {
       console.error(err);
@@ -185,21 +194,22 @@ export class SapolScraperService {
     const locationsMap: Map<string, MobileSpeedCameraLocationInsert> = new Map();
 
     elements.each((i, el) => {
+      const sapolShortDateFormat = 'dd/MM/yyyy';
       let startDate: string;
-      let endDate: string;
+      let endDate: string | null;
       // only add locations that showlist to avoid duplicates
       const cssClass = this.getAttributeValue(el, 'class');
       if (cssClass.includes('showlist')) {
         if (regionType === 'METRO') {
           const date = this.getAttributeValue(el, 'data-value');
-          const formattedDate = DateTime.fromFormat(date, 'dd/MM/yyyy').toFormat('yyyy-MM-dd');
+          const formattedDate = DateTime.fromFormat(date, sapolShortDateFormat).toFormat(this.shortDateFormat);
           startDate = formattedDate;
           endDate = formattedDate;
         } else {
-          const dateStart = this.getAttributeValue(el, 'datestart');
-          startDate = DateTime.fromFormat(dateStart, 'dd/MM/yyyy').toFormat('yyyy-MM-dd');
-          const dateEnd = this.getAttributeValue(el, 'dateend');
-          endDate = DateTime.fromFormat(dateEnd, 'dd/MM/yyyy').toFormat('yyyy-MM-dd');
+          const startVal = this.getAttributeValue(el, 'datestart');
+          startDate = this.safeParseSapolDate(startVal).toFormat(this.shortDateFormat);
+          const endVal = this.getAttributeValue(el, 'dateend');
+          endDate = this.safeParseSapolDate(endVal).toFormat(this.shortDateFormat);
         }
         let locationText = this.getTextNodeValue(el);
         locationText = locationText.replace(/\s*\r?\n\s*/g, ' ').trim();
@@ -240,6 +250,31 @@ export class SapolScraperService {
     return Array.from(locationsMap.values());
   }
 
+  /**
+   * Accounting for incorrectly formatted dates values in SAPOL site
+   */
+  safeParseSapolDate(value: string): DateTime {
+    const sapolShortDateFormat = 'dd/MM/yyyy';
+    const expectedDate = DateTime.fromFormat(value, sapolShortDateFormat);
+    if (expectedDate.isValid) {
+      return expectedDate;
+    }
+
+    const splitDate = value.split('/');
+    if (splitDate.length > 3) {
+      // EDGE CASE: date is invalid format
+      // 03/05/04/2026 -(should be)-> 03/05/2026
+      const day = splitDate[0];
+      const month = splitDate[1];
+      // get last element for year and ignore in-between values
+      const year = splitDate[splitDate.length - 1];
+      return DateTime.fromFormat(`${day}/${month}/${year}`, sapolShortDateFormat);
+    } else {
+      // can't handle this date... Figure it out SAPOL
+      return DateTime.invalid('Invalid Date');
+    }
+  }
+
   private getAttributeValue(element: Element, attributeName: string): string {
     return element.attribs?.[attributeName] ?? '';
   }
@@ -255,12 +290,20 @@ export class SapolScraperService {
   }
 }
 
+export const createSapolScraperService: (env: Env) => SapolScraperService =
+  ((env: Env): SapolScraperService => new SapolScraperService(env));
+
+/**
+ * Common methods used for initialisation of data
+ * TODO find a home
+ */
 export class SapolDataService {
-  // TODO find a home
-  static generateGenericRun(): ScrapeRunInsertDb | LocationResolutionRunInsertDb {
+  // TODO create generic run type
+  static generateGenericRun(): ScrapeRunInsertDb | LocationResolutionRunInsertDb | CanonisationRunInsertDb | CameraPipelineRunDb {
     return {
       run_start: DateTime.utc().toISO(),
-      run_result: 'PENDING'
+      run_result: 'PENDING',
+      meta: {}
     };
   }
 }

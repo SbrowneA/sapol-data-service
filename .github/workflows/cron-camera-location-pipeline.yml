@@ -10,6 +10,7 @@ jobs:
 
     env:
       URL: ${{ secrets.JOB_URL_CAMERA_PIPELINE }}
+      TRIGGER_SOURCE: ${{ secrets.TRIGGER_SOURCE }}
       CRON_API_KEY: ${{ secrets.CRON_API_KEY }}
 
     steps:
@@ -26,6 +27,7 @@ jobs:
 
           curl -X POST "$URL" \
             -H "Authorization: Bearer $CRON_API_KEY" \
+            -H "Trigger-Source: $TRIGGER_SOURCE" \
             --max-time 120 \
             --fail-with-body
           

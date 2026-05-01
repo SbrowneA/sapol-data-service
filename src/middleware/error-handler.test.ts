@@ -3,22 +3,8 @@ import { z } from 'zod';
 
 import { AppError } from '../errors/app-error.ts';
 import { errorHandler } from './error-handler.ts';
+import { createMockResponse } from '../testing/testing-utils.ts';
 
-type MockResponse = {
-  status: ReturnType<typeof vi.fn>;
-  json: ReturnType<typeof vi.fn>;
-};
-
-const createResponse = (): MockResponse => {
-  const response = {
-    status: vi.fn(),
-    json: vi.fn(),
-  };
-
-  response.status.mockReturnValue(response);
-
-  return response;
-};
 
 describe('errorHandler', () => {
   beforeEach(() => {
@@ -26,7 +12,7 @@ describe('errorHandler', () => {
   });
 
   it('returns the provided AppError response shape', () => {
-    const res = createResponse();
+    const res = createMockResponse();
     const req = { method: 'GET', originalUrl: '/api/camera-locations' };
     const next = vi.fn();
     const error = new AppError({
@@ -52,7 +38,7 @@ describe('errorHandler', () => {
   });
 
   it('maps ZodError to a bad request response', () => {
-    const res = createResponse();
+    const res = createMockResponse();
     const req = { method: 'GET', originalUrl: '/api/camera-locations?date=invalid' };
     const next = vi.fn();
     const schema = z.object({ date: z.iso.date() });
@@ -80,7 +66,7 @@ describe('errorHandler', () => {
   });
 
   it('maps unknown errors to an internal server error response', () => {
-    const res = createResponse();
+    const res = createMockResponse();
     const req = { method: 'GET', originalUrl: '/api/camera-locations' };
     const next = vi.fn();
 

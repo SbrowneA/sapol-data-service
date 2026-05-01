@@ -1,14 +1,9 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { PostgrestFilterBuilder } from '@supabase/postgrest-js';
 
-import { env } from '../../env.ts';
-
 /**
  * See docs at: https://supabase.com/docs/reference/javascript/start
  */
-
-const supabaseUrl = env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = env.PRIVATE_SUPABASE_NODE_SERVICE_KEY;
 
 export type IdFieldType = string | number | 'id';
 // Can increase granularity of response type with PostgrestMaybeSingleResponse & PostgrestSingleResponse
@@ -32,11 +27,16 @@ export class SupaDatabase {
   private static db: SupabaseClient | null = null;
 
   // Private constructor to prevent direct instantiation
-  constructor() {
-    SupaDatabase.getInstance();
+  constructor(supabaseUrl: string, supabaseKey: string) {
+    SupaDatabase.getInstance(supabaseUrl, supabaseKey);
   };
 
-  public static getInstance() {
+  /**
+   *
+   * @param supabaseUrl public url
+   * @param supabaseKey secret/service key
+   */
+  public static getInstance(supabaseUrl: string, supabaseKey: string) {
     if (!SupaDatabase.db) {
       try {
         SupaDatabase.db = createClient(supabaseUrl, supabaseKey);
