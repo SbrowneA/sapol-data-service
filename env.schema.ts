@@ -59,7 +59,7 @@ export const envSchema = z.object({
   CRON_API_KEYS: z.string().transform(commaStringToArray).pipe(z.string().array()),
   CRON_ALLOWED_METHODS: z.string().transform(commaStringToArray).pipe(RequestMethodEnum.array()),
   CRON_RATE_LIMIT_REQUESTS: z.coerce.number().default(1),
-  CRON_RATE_LIMIT_WINDOW_MS: z.coerce.number().default(120_000),
+  CRON_RATE_LIMIT_WINDOW_MS: z.coerce.number().default(10_000),
   CAMERA_PIPELINE_ACTIVE_WINDOW_MS: z.coerce.number().default(120_000),
   // DB - Supabse
   NEXT_PUBLIC_SUPABASE_URL: z.string().startsWith('https://').endsWith('supabase.co'),
