@@ -23,7 +23,7 @@ const cronRateLimit = rateLimit({
 cronRoutes.post('/camera-pipeline', cronRateLimit, async (req, res) => {
   const db: SupabaseClient | null = SupaDatabase.getInstance(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
   const pipelineService = new CameraLocationPipelineService(db, env);
-  const triggerSource = req.headers['Trigger-Source']?.[0];
+  const triggerSource = req.get('Trigger-Source');
 
   if (db) {
     try {
