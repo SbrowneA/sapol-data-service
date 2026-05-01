@@ -9,7 +9,7 @@ import { CanonisationRunTableService } from '../db/table-services/canonisation-r
 import { type LocationResolutionRunDb } from '../schemas/db/location-resolution-run-db.schema.ts';
 import { DateTime } from 'luxon';
 import { type SupabaseQuery } from '../db/sapol-db.service.ts';
-import { DatabaseError } from '../errors/app-error.ts';
+import { AppError, DatabaseError, UnexpectedError } from '../errors/app-error.ts';
 import { type ScrapeRun } from '../schemas/domain/scrape-run.schema.ts';
 import { DebugService } from '../debug/debug.service.ts';
 import { type Env } from '../../env.schema.ts';
@@ -26,11 +26,50 @@ export class CameraLocationPipelineService {
     }
     this.db = db;
     this.scrapeAndSaveUseCase = new RunScrapeAndSaveResultsUseCase(db, env);
-    this.cameraPipelineRunTableService = new CameraPipelineRunTableService(db);
+    this.cameraPipelineRunTableService = new CameraPipelineRunTableService(db, env);
     this.canonisationRunTableService = new CanonisationRunTableService(db);
   }
 
   /**
+   * 1. Check there is no active pipeline before initiating a new pipeline run.
+   *    - Throw error if exists
+   * 2. initiate pipeline or throw error
+   *    2.1 Returns new pipeline run and executes in the background
+   *
+   *    @param triggerSource - To track who originated
+   */
+  public async execute(triggerSource: string = 'unknown'): Promise<CameraPipelineRunDb> {
+    // 1. check there are no existing pipeline requests
+    const currentPipeline = await this.cameraPipelineRunTableService.getCurrentRunningPipeline();
+    if (currentPipeline.error) {
+      const dbError = currentPipeline.error;
+      throw new DatabaseError('ERROR: Failed canonisation run',
+        { hint: dbError?.hint, code: dbError?.code }, dbError);
+    }
+
+    if (currentPipeline.data) {
+      const pipelineId = currentPipeline.data.camera_pipeline_run_id;
+      throw new AppError({
+        statusCode: 409,
+        code: 'PIPELINE_ALREADY_RUNNING',
+        message: `The this pipeline is already running (Pipeline id: ${pipelineId}). Please wait a moment before triggering again`
+      });
+    }
+
+    // 2. Create pipeline record
+    const pipelineRun: CameraPipelineRunDb = await this.initialiseCameraLocationPipelineRun();
+    pipelineRun.meta = { trigger_source: triggerSource };
+
+    // Not awaiting - execute in the background
+    this._execute(pipelineRun).then((result: CameraPipelineRunDb) => {
+      console.log('camera pipeline complete\n', result);
+    });
+
+    return pipelineRun;
+  }
+
+  /**
+   * !! ATTENTION: Only execute once check for existing pipeline run has been made.
    * Executes the camera-location-pipeline in the following steps:
    * 1. Initialise camera-location-pipeline run record
    * 2. Execute Scrape & save use-case
@@ -42,10 +81,7 @@ export class CameraLocationPipelineService {
    *  4.1 Run SQL function
    * 5. Finalise pipeline run
    */
-  public async execute() {
-    // 1. Create pipeline record
-    const pipelineRun: CameraPipelineRunDb = await this.initialiseCameraLocationPipelineRun();
-    pipelineRun.meta = { initiator: 'cron' };
+  private async _execute(pipelineRun: CameraPipelineRunDb): Promise<CameraPipelineRunDb> {
     let scrapeRun: ScrapeRun | undefined;
     let canonisationRun: CanonisationRunDb | undefined;
     let resolutionRun: LocationResolutionRunDb | undefined;
@@ -122,9 +158,9 @@ export class CameraLocationPipelineService {
       throw new DatabaseError('ERROR: Failed to finalise pipeline run');
     }
     if (!pipelineResult?.data) {
-      throw new DatabaseError('Something went wrong in the pipeline run');
+      throw new UnexpectedError('Something went wrong in the pipeline run');
     }
-    return pipelineResult.data;
+    return pipelineResult.data[0];
   }
 
   async initialiseCameraLocationPipelineRun(): Promise<CameraPipelineRunDb> {
@@ -136,7 +172,7 @@ export class CameraLocationPipelineService {
       throw result.error;
     } else if (!result?.data) {
       console.error('Something went wrong camera location pipeline run');
-      throw new Error('Something went wrong camera location pipeline run');
+      throw new UnexpectedError('Something went wrong camera location pipeline run');
     }
 
     return result?.data[0];

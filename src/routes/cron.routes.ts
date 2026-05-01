@@ -3,15 +3,14 @@ import { SupabaseClient } from '@supabase/supabase-js';
 
 import { SupaDatabase } from '../db/sapol-db.service.ts';
 import { CameraLocationPipelineService } from '../data-pipeline/camera-location-pipeline.service.ts';
-import { DatabaseError } from '../errors/app-error.ts';
+import { AppError, DatabaseError } from '../errors/app-error.ts';
 import { cronRequireApiKeyHandler } from '../middleware/cron-require-api-key.ts';
 import { env } from '../../env.ts';
 import rateLimit from 'express-rate-limit';
+import { type CameraPipelineRunDb } from '../schemas/db/camera-pipeline-run-db.schema.ts';
 
 const cronRoutes = Router();
 
-// todo
-//  - add current job active lock/check
 cronRoutes.use(cronRequireApiKeyHandler);
 
 const cronRateLimit = rateLimit({
@@ -23,13 +22,31 @@ const cronRateLimit = rateLimit({
 
 cronRoutes.post('/camera-pipeline', cronRateLimit, async (req, res) => {
   const db: SupabaseClient | null = SupaDatabase.getInstance(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
-  if (db) {
-    res.status(200).json({
-      message: 'Camera pipeline run has been initiated',
-    });
+  const pipelineService = new CameraLocationPipelineService(db, env);
+  const triggerSource = req.headers['Trigger-Source']?.[0];
 
-    const result = await new CameraLocationPipelineService(db, env).execute() || {};
-    console.log('camera pipeline complete\n', result);
+  if (db) {
+    try {
+      // pipeline will run in background
+      const newPipelineRun: CameraPipelineRunDb = await pipelineService.execute(triggerSource);
+
+      res.status(200).json({
+        message: `Camera pipeline run has been initiated - (Pipeline run id: ${ newPipelineRun.camera_pipeline_run_id })`,
+      });
+    } catch (err) {
+      console.error(err);
+      if (err instanceof AppError) {
+        res.status(err.statusCode).json({
+          message: err.message || 'Camera pipeline failed to trigger',
+          error: err,
+        });
+      } else {
+        res.status(500).json({
+          message: 'Unexpected server error',
+        });
+      }
+    }
+
     return;
   } else {
     throw new DatabaseError('Database Is not available');
