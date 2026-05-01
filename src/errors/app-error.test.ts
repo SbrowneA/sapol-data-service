@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { AppError, BadRequestError, DatabaseError, NotFoundError } from './app-error.ts';
+import { AppError, BadRequestError, DatabaseError, NotFoundError, UnexpectedError } from './app-error.ts';
 
 describe('AppError classes', () => {
   it('creates a base AppError with the provided values', () => {
@@ -40,5 +40,15 @@ describe('AppError classes', () => {
     expect(error.statusCode).toBe(404);
     expect(error.code).toBe('NOT_FOUND');
     expect(error.message).toBe('Resource not found');
+  });
+
+  it('creates an UnexpectedError with the expected defaults', () => {
+    const cause = new Error('boom');
+    const error = new UnexpectedError(undefined, undefined, cause);
+
+    expect(error.statusCode).toBe(500);
+    expect(error.code).toBe('INTERNAL_SERVER_ERROR');
+    expect(error.message).toBe('Internal server error');
+    expect(error.cause).toBe(cause);
   });
 });

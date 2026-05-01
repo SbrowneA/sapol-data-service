@@ -104,7 +104,7 @@ The `canonise_supabase` script will:
 psql -h <HOST> -d <DATABASE_NAME> -U postgres -v ON_ERROR_STOP=1 -f <CANONISE_OSM_SCRIPT_PATH>
 ```
 
-* `CANONISE_OSM_SCRIPT_PATH` - as the path to `canonise_osm_v1.sql`
+* `CANONISE_OSM_SCRIPT_PATH` - as the path to `canonise_osm_script.sql`
 * `-d` - should be `osm` (as created by `create_osm_db.sql`)
 
 ---

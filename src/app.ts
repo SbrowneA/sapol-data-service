@@ -7,7 +7,7 @@ import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import morgan from 'morgan';
 
-import { env, isLocal, isTest } from '../env.ts';
+import { env } from '../env.ts';
 
 const app = express();
 
@@ -18,7 +18,7 @@ app.use(rateLimit({
   windowMs: env.RATE_LIMIT_WINDOW_MS,
   // requests per IP
   limit: () => env.RATE_LIMIT_REQUESTS,
-  skip: () => (isLocal || isTest)
+  skip: () => (env.IS_TEST || env.IS_LOCAL)
 }));
 
 app.use(helmet());
@@ -37,7 +37,7 @@ app.use(cors({
 app.use(express.json());
 // Helps handle query strings
 app.use(express.urlencoded({ extended: true }));
-app.use(morgan('dev', { skip: () => isTest }));
+app.use(morgan('dev', { skip: () => env.IS_TEST }));
 // serve static files
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

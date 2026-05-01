@@ -93,7 +93,8 @@ export class DataMappingService {
       run_end: value.runEnd,
       run_result: value.runResult,
       created_at: value.createdAt,
-      updated_at: value.updatedAt
+      updated_at: value.updatedAt,
+      meta: value.meta
     });
   }
 
@@ -104,7 +105,8 @@ export class DataMappingService {
       runEnd: value.run_end || null,
       runResult: value.run_result,
       createdAt: value.created_at,
-      updatedAt: value.updated_at || null
+      updatedAt: value.updated_at || null,
+      meta: value.meta
       // TODO: enable offset fpr zod.iso.datetime() in service or fix on fix on DB side? e.g.
       // runStart: DateTime.fromISO(value.created_at).toUTC().toISO(),
     });

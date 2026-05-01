@@ -10,7 +10,7 @@ import { regionTypeValues } from '../schemas/domain/region-type.enum.ts';
 import { env } from '../../env.ts';
 
 const apiLocationsRoutes = Router();
-const db: SupabaseClient | null = SupaDatabase.getInstance();
+const db: SupabaseClient | null = SupaDatabase.getInstance(env.NEXT_PUBLIC_SUPABASE_URL, env.PRIVATE_SUPABASE_NODE_SERVICE_KEY);
 
 apiLocationsRoutes.get('/', async (req, res) => {
   const { startDate, endDate } = cameraLocationsQuerySchema.parse(req.query);

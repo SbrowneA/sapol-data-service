@@ -2,7 +2,7 @@ import { SupabaseClient } from '@supabase/supabase-js';
 import { type PostgrestResponse } from '@supabase/postgrest-js';
 import { DateTime } from 'luxon';
 
-import { SapolDataService, SapolScraperService } from './sapol-scraper.service.ts';
+import { createSapolScraperService, SapolDataService, SapolScraperService } from './sapol-scraper.service.ts';
 import { ScrapeRunTableService } from '../db/table-services/scrape-run-table.service.ts';
 import { CameraLocationTableService } from '../db/table-services/camera-location-table.service.ts';
 import {
@@ -17,21 +17,20 @@ import type {
   MobileSpeedCameraLocationDb,
   MobileSpeedCameraLocationInsertDb,
 } from '../schemas/db/mobile-speed-camera-location-db.schema.ts';
+import { type Env } from '../../env.schema.ts';
 
 export class RunScrapeAndSaveResultsUseCase {
-  db: SupabaseClient;
   cameraLocationTableManager: CameraLocationTableService;
   scrapeRunTableManager: ScrapeRunTableService;
   sapolScraperService: SapolScraperService;
 
-  constructor(db: SupabaseClient | null) {
+  constructor(db: SupabaseClient | null, env: Env) {
     if (!db) {
       throw new Error('Database is not initialised.');
     }
-    this.db = db;
-    this.scrapeRunTableManager = new ScrapeRunTableService(this.db);
-    this.cameraLocationTableManager = new CameraLocationTableService(this.db);
-    this.sapolScraperService = new SapolScraperService();
+    this.scrapeRunTableManager = new ScrapeRunTableService(db);
+    this.cameraLocationTableManager = new CameraLocationTableService(db);
+    this.sapolScraperService = createSapolScraperService(env);
   }
 
   /**
@@ -101,7 +100,7 @@ export class RunScrapeAndSaveResultsUseCase {
 
   async initialiseScrapeRun(): Promise<ScrapeRun> {
     const result =
-      await this.scrapeRunTableManager.insertScrapeRun(SapolDataService.generateGenericRun());
+      await this.scrapeRunTableManager.insertRows([SapolDataService.generateGenericRun()]);
 
     if (result?.error) {
       console.error('ERROR: Failed initialising scrape run');
@@ -242,7 +241,7 @@ export class RunScrapeAndSaveResultsUseCase {
     scrapeRun.runEnd = DateTime.utc().toISO();
     scrapeRun.runResult = scrapeRun.runResult ?? 'SUCCESS';
 
-    const result = await this.scrapeRunTableManager.updateScrapeRun(DataMappingService.scrapeRunBeToDb(scrapeRun));
+    const result = await this.scrapeRunTableManager.updateRow(DataMappingService.scrapeRunBeToDb(scrapeRun));
     if (result?.error) {
       console.error('ERROR: Could not finalise successful scrape run', result.error);
       throw result.error;
@@ -250,3 +249,6 @@ export class RunScrapeAndSaveResultsUseCase {
     console.log('SCRAPE RUN COMPLETE', result?.status);
   }
 }
+
+export const createRunScrapeAndSaveResultsUseCase: (db: SupabaseClient, env: Env) => RunScrapeAndSaveResultsUseCase =
+  ((db: SupabaseClient, env: Env) => new RunScrapeAndSaveResultsUseCase(db, env));

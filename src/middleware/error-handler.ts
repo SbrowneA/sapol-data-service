@@ -1,7 +1,7 @@
 import type { ErrorRequestHandler } from 'express';
 import { ZodError } from 'zod';
 
-import { AppError, BadRequestError } from '../errors/app-error.ts';
+import { AppError, BadRequestError, UnexpectedError } from '../errors/app-error.ts';
 
 /**
  * Normalises unknown thrown values into an AppError instance.
@@ -22,12 +22,7 @@ const getErrorPayload = (err: unknown): AppError => {
     });
   }
 
-  return new AppError({
-    statusCode: 500,
-    code: 'INTERNAL_SERVER_ERROR',
-    message: 'Internal server error',
-    cause: err,
-  });
+  return new UnexpectedError(undefined, undefined, err);
 };
 
 /**

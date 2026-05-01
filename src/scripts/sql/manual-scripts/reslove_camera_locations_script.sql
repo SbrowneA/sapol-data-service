@@ -36,7 +36,7 @@ BEGIN
         NOW(),
         'PENDING',
         jsonb_build_object(
-            'status', 'running'
+            'initiator', 'manual script'
         )
     )
     RETURNING resolution_run_id
