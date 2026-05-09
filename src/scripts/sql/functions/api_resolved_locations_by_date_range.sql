@@ -1,4 +1,5 @@
 DROP FUNCTION IF EXISTS api_resolved_locations_by_date_range;
+
 CREATE OR REPLACE FUNCTION api_resolved_locations_by_date_range(
     q_start_date date,
     q_end_date date,
@@ -13,6 +14,7 @@ CREATE OR REPLACE FUNCTION api_resolved_locations_by_date_range(
                 "suburbId"           bigint,
                 "startDate"          date,
                 "endDate"            date,
+                "regionType"         text,
                 "streetGeom"         jsonb,
                 "suburbGeom"         jsonb
             )
@@ -26,6 +28,7 @@ SELECT loc.id                                                   AS "cameraLocati
        sub.suburb_osm_id                                        AS "suburbId",
        loc.start_date                                           AS "startDate",
        loc.end_date                                             AS "endDate",
+       loc.region_type                                          AS "regionType",
        ST_AsGeoJSON(ST_Transform(sbs.street_geom, 4326))::jsonb AS "streetGeom",
        ST_AsGeoJSON(ST_Transform(sub.suburb_geom, 4326))::jsonb AS "suburbGeom"
 FROM mobile_speed_camera_location loc
@@ -47,4 +50,4 @@ WHERE loc.is_active
     );
 $$ LANGUAGE sql STABLE;
 
--- SELECT * FROM api_streets_by_date_range('2026-01-14'::date, '2026-01-14'::date);
+-- SELECT * FROM api_resolved_locations_by_date_range('2026-01-14'::date, '2026-01-14'::date);
