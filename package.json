@@ -17,6 +17,7 @@
   "scripts": {
     "serve-prod": "cross-env APP_STAGE=prod node src/server.ts",
     "test": "vitest run",
+    "type-check": "npx tsc --noEmit",
     "test:unit": "vitest run",
     "test:watch": "vitest",
     "run-local": "npm run lint && node --watch --watch-preserve-output src/server.ts",
