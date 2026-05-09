@@ -3,7 +3,13 @@ import { z } from 'zod';
 import { IsoDateTimeWithOffset } from './iso-with-offset.schema.ts';
 import { RunResultEnum } from './run-result.enum.ts';
 
-export type ScrapeRunResult = z.infer<typeof ScrapeRunSchema>;
+export const ScrapeRunMetaSchema = z.object({
+  deactivatedLocationsCount: z.int().nullable(),
+  existingLocationsCount: z.int().nullable(),
+  newLocationsCount: z.int().nullable()
+});
+
+export type ScrapeRunMeta = z.infer<typeof ScrapeRunMetaSchema>;
 
 export const ScrapeRunSchema = z.object({
   scrapeRunId: z.int(),

@@ -9,7 +9,7 @@ import {
   MobileSpeedCameraLocationReconciliationService,
   type ReconciliationMap
 } from '../db/data-reconciliation.service.ts';
-import { type ScrapeRun } from '../schemas/domain/scrape-run.schema.ts';
+import type { ScrapeRun, ScrapeRunMeta } from '../schemas/domain/scrape-run.schema.ts';
 import { type ScrapeRunDb } from '../schemas/db/scrape-run-db.schema.ts';
 import { DataMappingService } from '../db/data-mapping.service.ts';
 import { type ScrapeRunResultsToSave } from './run-scrape-and-save.types.ts';
@@ -49,6 +49,11 @@ export class RunScrapeAndSaveResultsUseCase {
     // 1. initialise scrape run
     const scrapeRun = await this.initialiseScrapeRun();
     console.log('scrape run created & parsed: ', scrapeRun);
+    const metaDetails: ScrapeRunMeta = {
+      deactivatedLocationsCount: null,
+      existingLocationsCount: null,
+      newLocationsCount: null,
+    };
 
     try {
       // 2.1 scrape data
@@ -86,14 +91,19 @@ export class RunScrapeAndSaveResultsUseCase {
       await this.insertNewLocations(toInsert);
 
       // 6. END finalise scrapeRun
-      await this.finaliseScrapeRun(scrapeRun);
+      metaDetails.deactivatedLocationsCount = toDeactivate.length;
+      metaDetails.existingLocationsCount = toUpdate.length;
+      metaDetails.newLocationsCount = toInsert.length;
+
+      await this.finaliseScrapeRun(scrapeRun, metaDetails);
 
       return { scrapeRun, toInsert, toUpdate, toDeactivate, reconciliationMap };
     } catch (error) {
       console.error(error);
       // Finalise failed scrape run
       scrapeRun.runResult = 'FAIL';
-      await this.finaliseScrapeRun(scrapeRun);
+
+      await this.finaliseScrapeRun(scrapeRun, metaDetails);
       throw error;
     }
   }
@@ -237,10 +247,17 @@ export class RunScrapeAndSaveResultsUseCase {
     }
   }
 
-  async finaliseScrapeRun(scrapeRun: ScrapeRun) {
+  async finaliseScrapeRun(scrapeRun: ScrapeRun,
+    metaDetails: ScrapeRunMeta) {
     scrapeRun.runEnd = DateTime.utc().toISO();
     scrapeRun.runResult = scrapeRun.runResult ?? 'SUCCESS';
 
+    scrapeRun.meta = {
+      ...scrapeRun.meta,
+      deactivatedLocationsCount: metaDetails.deactivatedLocationsCount,
+      existingLocationsCount: metaDetails.existingLocationsCount,
+      newLocationsCount: metaDetails.newLocationsCount
+    };
     const result = await this.scrapeRunTableManager.updateRow(DataMappingService.scrapeRunBeToDb(scrapeRun));
     if (result?.error) {
       console.error('ERROR: Could not finalise successful scrape run', result.error);
